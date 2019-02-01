@@ -1,0 +1,10 @@
+     The linear system solver assembly code 'solv.s' used in the 'matrix'
+     segment of the library must be replaced by the corresponding C code
+     'solv.c' when the target platform is not an Intel based processor.
+
+     For some reason the GNU-C optimization of solv.c code produced
+     unnecessary saves and restores in the innermost loop of this
+     linear system solver code. This severly degraded performance,
+     so the assembly code 'solv.s' was introduced. I believe that
+     this problem is unique to Intel patforms using the GNU-C
+     compiler.

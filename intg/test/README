@@ -1,0 +1,10 @@
+     This directory contains test code for the functions of the 'intg'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it.
+
+     No input parameters are required for the standard tests,
+     however, two tests accept an optional command line parameter.
+
+        tchintg n  (n = optional fit order)
+        tfintg t   (t = optional convergence threshold)
+

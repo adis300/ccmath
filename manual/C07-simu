@@ -1,0 +1,371 @@
+                               Chapter 7
+
+                           SIMULATION SUPPORT
+
+                                Summary
+
+               The functions in the simulation segment of the
+               library provide support for Monte Carlo
+               simulation analysis of physical systems in the
+               following areas:
+
+                    o Generation of Pseudorandom Numbers
+                    o Random Sampling and Shuffling
+                    o Simulation Output Analysis
+
+               Several types of pseudorandom generator are
+               supplied for both the uniform and normal
+               distributions. Analysis tools compute histograms
+               and serial autocorrelations.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+     This library segment supports Monte Carlo simulation and the associated
+ statistical analysis.
+
+ o Generation of Pseudorandom Numbers:
+
+    lran1  -------- generate pseudorandom integers, with
+                    0 <= n < 2^32, using a one generator 
+                    shuffle. (The preferred method with
+                    effectively unlimited period.)
+    lrand  -------- generate pseudorandom integers, with
+                    0 < n < 2^31 - 1 . (Retained because it
+                    is used on many mainframe computers.)
+    bran  --------- generate a random integer in the range
+                    0 <= m < N , with specified N, using a
+                    one generator shuffle.
+    bran2  -------- generate a random integer in the range
+                    0 <= m < N , with specified N, using a
+                    two generator shuffle.
+    unfl  --------- generate pseudorandom numbers uniformly
+                    distributed on [0,1], using a one generator
+                    shuffle.
+    unfl2 --------- uniform pseudorandom generator with a
+                    two generator shuffle with effectively
+                    unlimited period.
+    nrml  --------- generate pseudorandom numbers with a
+                    standard normal distribution, using a
+                    one generator shuffle generator. (The
+                    fastest normal generator.)
+    norm  --------- generate pairs of pseudorandom standard
+                    normals, using a one generator shuffle.
+    norm2  -------- generate pairs  of pseudorandom standard
+                    normals using a two generator shuffle.
+
+ 
+ o Random Sampling and Shuffling:
+
+    sampl  ------- select a random sample of specified size
+                   from a set of N objects.
+    shuffl  ------ perform a random shuffle of an array of data
+                   pointers.
+
+     Random sampling and random shuffling of a set are supported by a function
+ that produces random integers in the range 0 <= r < m, for a specified value
+ of m. Both of these algorithms operate on input pointer arrays, so that the
+ data records sampled or shuffled may be specified externally.
+
+ o Statistical Analysis Tools:
+
+    hist  -------- compile a histogram of the values of an
+                   input series.
+    autcor  ------ compute the autocorrelation coefficients of
+                   a series.
+
+     The compilation of simulation statistics is supported by a histogram
+ function. In addition, a second utility performs direct computation of serial
+ correlation coefficients. These correlations play an important role in tests
+ of analytic model residuals.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     Generators based on shuffling the output of one congruential generator
+ using the output of a second independent generator, with period relatively
+ prime to that of the first generator, (bran2, norm2 and unfl2) have an
+ effectively unlimited period. This form is well suited to multidimensional
+ Monte Carlo computations. The single shuffle generators are much faster
+ and also have very long or unlimited periods. Both forms are designed to
+ avoid the lattice structures observed in some congruential generators.
+
+-------------------------------------------------------------------------------
+                           FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     Pseudorandom Generators:
+-------------------------------------------------------------------------------
+
+lran1
+
+     Generate pseudorandom unsigned int integers in the range
+     0 =< r <= 2^32 -1.
+
+     unsigned int lran1()
+      return value: r = random long integer 
+
+     This generator is initialized by setlran1.
+
+     void setlran1(unsigned int s)
+       s = initializing seed for the generator.
+
+     The generator uses a congruential method and shuffles its
+     output to obtain an effectively unlimited period. It is the
+     recommended integer generator.
+
+     --------------------------------------------------------------
+
+lrand
+
+     Generate pseudorandom long integers in the range 0 < r < 2^31 - 1.
+
+     long lrand()
+      return value: r = random long integer ( r > 0 )
+
+     This generator is initialized by setlrand.
+
+     void setlrand(unsigned int s)
+       s = initializing seed for the generator (0 < s < 2^31 -1)
+
+
+     The generator is a simple multiplicative congruential one with
+     period 2^31 - 1. It is retained for use when replication of
+     the output produced on an mainframe using this standard IBM
+     GGL algorithm is desired.
+
+     -----------------------------------------------------------------
+
+bran
+
+     Generate a random integer in the range 0 =< r < n.
+
+     int bran(int n)
+       n = integer defining range of return (n > 0)
+      return value: r = random integer (0 <= r < n)
+
+     The function setbran initializes the generator.
+
+     void setbran(unsigned int s)
+       s = initializing seed for the generator
+
+     The generator combines a congruential generator with a
+     buffer shuffle that yields an effectively unlimited period.
+
+     -------------------------------------------------------------
+
+bran2
+
+     Generate a random integer in the range 0 <= r < n.
+
+     int bran2(n)
+     int n;
+       n = integer defining range of return (n > 0)
+      return value: r = random integer (0 <= r < n)
+
+     The function setbran2 initializes the generator.
+
+     void setbran2(s)
+     unsigned int s;
+       s = initializing seed for the generator
+
+     The generator combines two congruential generators with a
+     buffer shuffle to produce an effectively unlimited period.
+
+     ------------------------------------------------------------
+
+unfl
+
+     Generate pseudorandom numbers uniformly distributed on [0,1].
+
+     double unfl()
+      return value: u = variate uniformly distributed on [0,1]
+
+
+     The unfl generator is initialized by calling setunfl.
+
+
+     void setunfl(s)
+     unsigned int s;
+       s = initializing seed for the generator
+
+     The generator combines a congruential generator with a
+     buffer shuffle that yields an effectively unlimited period.
+
+     ----------------------------------------------------------------
+
+unfl2
+
+     Generate pseudorandom numbers uniformly distributed on [0,1].
+
+     double unfl2()
+      return value: u = variate uniformly distributed on [0,1]
+
+
+     The unfl2 generator is initialized by calling setunfl2.
+
+
+     void setunfl2(unsigned int s)
+
+       s = initializing seed for the generator
+
+     The generator combines two congruential generators with a
+     buffer shuffle to produce an effectively unlimited period.
+
+     ------------------------------------------------------------
+
+nrml
+
+     Generate normally distributed pseudorandom numbers.
+
+     double nrml()
+      return value: e = normally distributed variate (zero mean
+                        and unit variance)
+
+     Initialize the nrml generator by calling setnrml.
+
+     void setnrml(unsigned int s)
+       s = initializing seed for the generator
+
+
+     The generator combines a congruential generator with a
+     buffer shuffle that yields an effectively unlimited period.
+
+     --------------------------------------------------------------
+
+ norm
+
+     Generate q pair of pseudorandom normals with zero mean and unit
+     variance.
+
+     void norm(double *err)
+       err = pointer to an array for output of an independent
+             pair of normally distributed pseudorandom numbers
+               (output has zero mean and unit variance)
+
+     The norm generator is initialized by setnorm.
+
+     void setnorm(unsigned int s)
+       s = initializing seed for the generator
+
+
+     This function combines a congruential method with a buffer
+     shuffle to generate a pair of random uniform values. The
+     The polar rejection method is used to obtain a pair of
+     standard normal values. This is an analytically "exact" method.
+
+     -----------------------------------------------------------------
+
+norm2
+
+     Generate q pair of pseudorandom normals with zero mean and unit
+     variance.
+
+     void norm2(double *err)
+       err = pointer to array for output of an independent
+             pair of normally distributed pseudorandom numbers
+               (zero mean and unit variance)
+
+     The norm generator is initialized by setnorm2.
+
+     void setnorm2(unsigned int s)
+       s = initializing seed for the generator
+
+     The generator combines two congruential generators with a
+     buffer shuffle to produce an effectively unlimited period.
+
+
+-------------------------------------------------------------------------------
+
+ Sampling and Shuffling:
+-------------------------------------------------------------------------------
+
+sampl
+
+     Select a random sample of size m from n objects.
+
+     void sampl(void **s,int m,void **d,int n)
+      s = pointer to array of array of sample pointers (dimension m)
+           (loaded with a random sample of m pointers from d at exit)
+      d = pointer to an array of n data pointers
+      n = size of data base
+      m = size of requested sample
+
+
+     The sampling function calls bran, so it is essential to
+     initialize this generator with setbran, prior to use of
+     sampl. (see bran above) The pointers in d and s are
+     declared as generic (char *) to support sampling any
+     type of data record via pointers.
+
+     ---------------------------------------------------------------
+
+shuffl
+
+     Perform a random shuffle of an array of data pointers.
+
+     void shuffl(void **s,int n)
+       s = pointer to an array of pointers to data records
+           (output s contains a random permutation of the
+            input pointers)
+       n = dimension of array s
+
+
+     This function calls bran, thus, it requires a call
+     to setbran prior to use. (see bran above)
+
+-------------------------------------------------------------------------------
+
+ Statistical Analysis Tools:
+-------------------------------------------------------------------------------
+
+autcor
+
+     Compute the autocorrelation coefficients of a series.
+
+     double *autcor(double *x,int n,int mlag)
+       x = pointer to array containing the input series
+       n = length of input series (dimension of x-array)
+       mlag = maximum lag (autocorrelations are computed up to mlag)
+      return value: pa = pointer to array allocated for storing
+                         autocorrelation coefficients, with:
+                         *pa = sum of squares over the series
+                                (normalizer for autocorrelations)
+                         *(pa+k) = autocorrelation at lag k,
+                                    k=1,2, -- ,mlag
+
+
+        The autocorrelations are defined by
+
+          c[k] = { Sum(i=0 to n-k-1) x[i]*x[i+k] }/< x^2 >  with
+
+          < x^2 > = Sum(i=0 to n-1) x[i]^2 .
+
+        The storage allocated by autcor is released by calling free(pa).
+
+     --------------------------------------------------------------------
+
+hist
+
+     Compile a histogram of the values of an input series.
+
+     int *hist(double *x,int n,double xmin,double xmax, \
+               int kbin,double *bin)
+       x = pointer to array containing input series
+       n = size of input series
+       xmin = lower limit of histogram interval
+       xmax = upper limit of histogram interval
+       kbin = number of histogram intervals
+       bin = pointer to store for computed bin size
+               (*bin=(xmax-xmin)/kbin)
+      return value: ph = pointer to storage allocated for
+                         histogram, with:
+                         *(p-1) = number of values < xmin
+                         *(p+kbin) = number of values >xmax
+                         *(p+k) = number of values in kth bin,
+                                   k=0,1, --- ,kbin-1
+
+
+        The storage allocated by hist is released by calling free(ph-1).

@@ -1,0 +1,595 @@
+                                  Chapter 13
+
+                           HIGH PRECISION ARITHMETIC
+
+                                   Summary
+
+                 The extended precision library implements a high
+                 precision floating point arithmetic together with a
+                 comprehensive set of support functions. The general
+                 areas covered by these functions include:
+
+                     o Extended Precision Arithmetic
+                     o Extended Precision Math Library
+                     o Applications of High Precision Computation
+
+                 The math library support includes evaluation of
+                 trigonometric, inverse trigonometric, hyperbolic,
+                 logarithm, and exponential functions at the same
+                 precision as the floating point math itself.
+
+-------------------------------------------------------------------------------
+
+ Note on Contents
+
+ o Extended Precision Floating Point Arithmetic:
+
+    xadd  -------- add/subtract two extended precision numbers.
+    xmul  -------- multiply two extended precision numbers.
+    xdiv  -------- divide two extended precision numbers.
+    xneg  -------- change sign (xneg), compute absolute value (xabs),
+                   extract exponent (xex), and test sign (neg) of
+                   an extended precision number.
+    xpwr  -------- raise an extended precision number to an integer
+                   power (xpwr), or multiply it by a power of 2 (xpr2).
+    xprcmp  ------ compare two extended precision numbers.
+    xtodub  ------ convert an extended precision number to a double
+                   (xtodub), a double to extended precision (dubtox),
+                   or an integer to an extended precision number (inttox).
+    xfmod  ------- analogs of standard library fmod (xfmod), and frexp
+                   (xfrex) functions.
+    atox  -------- convert a numerical string to an extended precision
+                   number.
+    prxpr  ------- print an extended precision number in scientific
+                   format, or print the binary format as a string of
+                   hexadecimal short integers (xprint).
+
+     The arithmetic functions support the basic computation and input/output
+ operations needed for extended precision floating point mathematics. Some
+ of the operations supply capabilities designed to enhance the computational
+ efficiency of this arithmetic (e.g., 'xpwr').
+    
+ o Extended Precision Math Library:
+
+    xsqrt  ------- compute the square root of an extended precision
+                   number.
+    xexp  -------- extended precision exponential function.
+    xlog  -------- extended precision natural logarithm.
+    xtrig  ------- extended precision sine (xsin), cosine (xcos),
+                   and tangent (xtan) functions.
+    xivtrg  ------ extended precision arcsine (xasin), arccosine
+                   (xacos), and arctangent (xatan) functions.
+    xhypb  ------- extended precision hyperbolic functions for
+                   sinh (xsinh), cosh (xcosh), and tanh (xtanh).
+
+     These functions provide the elementary function evaluations normally
+ supported in a C math library. They are designed to provide full precision
+ accuracy.
+    
+ o Applications of Extended Precision Arithmetic:
+
+    xchcof  ------- compute extended precision Tchebycheff expansion
+                    coefficients.
+    xevtch  ------- evaluate an extended precision Tchebycheff series.
+
+     The Tchebycheff expansion supplied with the library can be used to
+ compute the Tchebycheff expansion coefficients of a function to an accuracy
+ of 32 digits. This ability is useful in developing high accuracy function
+ approximations, since the effect of rounding error on coefficients used in
+ double precision can effectively be eliminated with these inputs.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The full implementation of a floating point arithmetic is not commonly a
+ component included in a mathematical utility library. This enhancement is
+ included because we have found it invaluable in the analysis of problems that
+ may originate with the floating point arithmetic. The functions are all
+ implemented in a portable fashion in the C language.
+
+     The IEEE 754 standard for floating point hardware and software is assumed
+ in the PC version of this library. The normal configuration of the library
+ employs a floating point mantissa of 102 bits, or approximately 32 decimal
+ digit precision. However, even higher precision is available as an option.
+
+     An extended floating point number is represented as a combination of the
+ following elements:
+
+                    sign bit(s): 0 -> positive, 1 -> negative ;
+                    exponent(e): 15-bit biased integer (bias=16383) ;
+                    mantissa(m): 7 words of 16 bit length with the
+                                 leading 1 explicitly represented .
+
+                   Thus  f = (-1)^s*2^[e-16383] *m ,  with 1 <= m < 2 .
+
+ This format supports a dynamic range of:
+
+                    2^16384 > f > 2^[-16383]  or
+
+                    1.19*10^4932 > f > 1.68*10^-[4932].
+
+ Special values of the exponent are:
+
+                    all ones -> infinity (floating point overflow)
+                    all zeros -> number = zero.
+
+ Underflow in operations is handled by a flush to zero. Thus, a number with
+ the exponent zero and nonzero mantissa is invalid (not-a-number).
+
+-------------------------------------------------------------------------------
+                          FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     The header files for extended precision arithmetic are xpre.h and
+ constant.h. The ccmath.h header file can be used in place of xpre.h and
+ constant.h if desired. The xpre.h file contains a definition of the basic
+ structure of an extended precision number (struct xpr), and declarations
+ for the library functions. Either ccmath.h or the pair xpre.h and
+ constant.h must be included in order to use high precision arithmetic.
+
+     xpre.h
+
+     #define XDIM 7
+     struct xpr {unsigned short nmm[XDIM+1];};
+     extern unsigned short m_sgn,m_exp;
+     extern short bias;
+     extern int itt_div,k_tanh;
+     extern int ms_exp,ms_trg,ms_hyp;
+     extern short max_p,k_lin;
+     extern short d_bias,d_max,d_lex;
+     extern struct xpr zero,one,two,ten;
+     extern struct xpr x_huge;
+     extern struct xpr pi,pi2,pi4;
+     extern struct xpr ee,srt2,ln2;
+     struct xpr xadd(),xmul(),xdiv(),atox();
+     struct xpr dubtox(),inttox(),sfmod(),xpwr(),xpr2();
+     struct xpr xneg(),xabs(),xfrex(),xfmod();
+     double xtodub();
+     struct xpr xtan(),xsin(),xcos();
+     struct xpr xatan(),xasin(),xacos(),xatan2();
+     struct xpr xsqrt(),xexp(),xlog();
+     struct xpr xtanh(),xsinh(),xcosh();
+
+ The constant.h file defines constants used by the library functions.
+ Extended precision constants in this header file represent pi/4, pi/2,
+ pi, e, log(2), and sqrt(2) respectively.
+
+     constant.h
+
+     unsigned short m_sgn=0x8000,m_exp=0x7fff;
+     short bias=16383;
+     int itt_div=2,k_tanh=5;
+     int ms_exp=21,ms_hyp=25,ms_trg=31;
+     short max_p=16*XDIM,k_lin= -8*XDIM;
+     short d_bias=15360,d_max=2047,d_lex=12;
+     struct xpr zero={0x0,0x0};
+     struct xpr one={0x3fff,0x8000};
+     struct xpr two={0x4000,0x8000};
+     struct xpr ten={0x4002,0xa000};
+     struct xpr x_huge={0x7fff,0x0};
+     struct xpr pi4={0x3FFE,0xC90F,0xDAA2,0x2168,0xC234,0xC4C6,0x628B,0x80DC};
+     struct xpr pi2={0x3FFF,0xC90F,0xDAA2,0x2168,0xC234,0xC4C6,0x628B,0x80DC};
+     struct xpr pi={0x4000,0xC90F,0xDAA2,0x2168,0xC234,0xC4C6,0x628B,0x80DC};
+     struct xpr ee={0x4000,0xADF8,0x5458,0xA2BB,0x4A9A,0xAFDC,0x5620,0x273D};
+     struct xpr ln2={0x3FFE,0xB172,0x17F7,0xD1CF,0x79AB,0xC9E3,0xB398,0x3F3};
+     struct xpr srt2={0x3FFF,0xB504,0xF333,0xF9DE,0x6484,0x597D,0x89B3,0x754B};
+
+     The precision of extended precision arithmetic functions can be altered
+ by changing the parameters in these header files and recompiling the source
+ code. Changes required are indicated here. (It is assumed that the length
+ of the exponent field is not changed.)
+
+     1. In 'xpre.h' alter XDIM to the new length of the mantissa.
+
+     2. In 'constant.h' alter the following parameters:
+        itt_div , k_tanh , ms_exp , ms_hyp , and  ms_trg 
+        to values consistent with the new precision.
+
+        Set the values of pi4, pi2, pi, ee, ln2, and srt2 to
+        values that provide full accuracy in the new mantissa.
+
+ Alternative versions of these header files for mantissa lengths up to 31*16
+ bits are available.
+
+-------------------------------------------------------------------------------
+
+     Basic Operations:
+-------------------------------------------------------------------------------
+
+xadd
+
+     Add (subtract) two extended precision numbers.
+
+     struct xpr xadd(struct xpr s,struct xpr t,int f)
+       s = structure containing first number
+       t = structure containing second number
+       f = control flag, with 0 -> add inputs (s+t)
+                              1 -> subtract inputs (s-t)
+      return value: x = structure containing result
+
+     -------------------------------------------------------
+
+xmul
+
+     Multiply two extended precision numbers.
+
+     struct xpr xmul(struct xpr s,struct xpr t)
+       s = structure containing first number
+       t = structure containing second number
+      return value: x = structure containing product (x=s*t)
+
+     -------------------------------------------------------------
+
+xdiv
+
+     Divide one extended precision number by a second.
+
+     struct xpr xdiv(struct xpr s,struct xpr t)
+       s = structure containing numerator
+       t = structure containing denominator
+      return value: x = structure containing quotient (x=s/t)
+
+-------------------------------------------------------------------------------
+
+     Useful Floating Point Operations:
+-------------------------------------------------------------------------------
+
+xneg
+
+     Functions to change sign (unary minus), compute absolute value,
+     extract the exponent, and test the sign of an extended precision
+     number.
+
+     struct xpr xneg(struct xpr s)
+       s = structure containing input number
+      return value: x = structure containing negative of input (x= -s)
+
+     ----------------------------------------------------------------
+
+xabs
+
+     struct xpr xabs(struct xpr s)
+     struct xpr s;
+       s = structure containing input number
+      return value: x = structure containing absolute value of s
+
+     -------------------------------------------------------------
+
+xex
+  
+     int xex(unsigned short *ps)
+       ps = pointer to first word of extended precision number
+      return value: e = exponent (power of 2) of the input number
+
+     ---------------------------------------------------------------
+
+neg
+
+     int neg(unsigned short *ps)
+       ps = pointer to first word of extended precision number
+      return value: s = sign flag, with
+                        0 -> positive input
+                        1 -> negative input
+
+ 
+       Note that xex and neg do not alter the input number!
+
+     ------------------------------------------------------------
+
+xpwr
+
+     Functions for integer powers and multiplication by a power of two.
+
+     struct xpr xpwr(struct xpr s,int n)
+       s = structure containing input number
+       n = power desired
+      return value: x = structure containing nth power of input (s)^n.
+
+     -------------------------------------------------------------------
+
+xpr2
+
+     struct xpr xpr2(struct xpr s,int m)
+       s = structure containing input number
+       m = power of two desired
+      return value: x = structure containing product s*2^m.
+
+     ------------------------------------------------------------------
+
+xprcmp
+
+     Compare two extended precision numbers.
+
+     int xprcmp(unsigned short *pa,unsigned short *pb)
+       pa = pointer to first component of number a
+       pb = pointer to first component of number b
+      return value: comparison flag, with
+                     1 -> *pa > *pb
+                     0 -> *pa = *pb
+                    -1 -> *pa < *pb
+
+      The input numbers are not altered by xprcmp!
+
+     ---------------------------------------------------------
+
+xtodub
+
+     Convert doubles and integers to extended precision and cast
+     extended precision numbers to doubles.
+
+     double xtodub(struct xpr s)
+       s = structure containing extended precision input
+      return value: x = double precision float = s
+
+     struct xpr dubtox(double y)
+       y = double precision floating point input
+      return value: x = structure containing extended equivalent (x=y)
+
+     struct xpr inttox(int n)
+       n = integer input
+      return value: x = structure containing extended equivalent (x=n)
+
+     -------------------------------------------------------------------
+
+xfmod
+
+     These functions are extended precision analogs of the standard library
+      fmod and frexp functions.
+     
+     struct xpr xfmod(struct xpr s,struct xpr t,int *p)
+       s = structure containing operand of fmod
+       t = structure containing base number (t!=0)
+       p = pointer to store for output integer m
+      return value: x = structure of extended number with same sign as s
+                        and absolute value less than that of t, satisfying
+                         s = m*t + x  if s*t>0, or
+                         s = -m*t +x  if s*t<0
+
+     -------------------------------------------------------------------
+
+xfrex
+
+     struct xpr xfrex(struct xpr s,int *p)
+       s = structure containing operand
+       p = pointer to store for output exponent e
+      return value: x = structure of extended number satisfying
+                        x = s*2^(-e)  with  (-1 < x <1).
+
+     -----------------------------------------------------------------------
+
+atox
+
+     Convert a floating point number, expressed as an decimal ASCII string
+     in a form consistent with C, into the extended precision format.
+
+     struct xpr atox(char *s)
+       s = pointer to null terminated ASCII string expressing a
+           decimal number
+      return value: u = structure containing input number in the
+                         extended precision format.
+
+     ---------------------------------------------------------------------
+
+prxpr
+
+     Print an extended precision number in scientific format.
+
+     void prxpr(struct xpr u,int lim)
+       u = structure containing number to be printed
+       lim = number of decimal digits to the right of the
+             decimal point (lim+1=total digits displayed)
+
+     -----------------------------------------------------------
+
+xprint
+
+     Print an extended precision number as a string of hexadecimal
+     numbers.
+
+       void xprint(struct xpr u)
+       u = structure containing number to be printed
+
+
+     The 'xprint' function supports a bit oriented analysis of
+     rounding error effects.
+
+-------------------------------------------------------------------------------
+
+     Auxiliary Functions Supporting High Precision Math:
+------------------------------------------------------------------------------ 
+
+     These routines support functions in the high precision library.
+     They are not normally called by a user.
+
+sfmod
+
+     Special modular function to extract integer part of a number.
+
+     struct xpr sfmod(struct xpr s,int *p)
+       s = structure containing input number
+       p = pointer to store for integer part of s
+           ( *p= -1 -> integer part > 2^15 , overflow)
+      return value: u = structure containing fractional part of s
+
+     ----------------------------------------------------------------
+
+shift
+
+     Functions to shift the bits of extended precision structures
+     left/right.
+
+     void lshift(int n,unsigned short *pm,int m)
+       pm = pointer to initial word to be shifted
+             (output left shifted n bits and zero filled
+              on the right)
+       n = number of bits to left-shift
+       m = number of words in shift structure
+
+     void rshift(int n,unsigned short *pm,int m)
+       pm = pointer to initial word to be shifted
+             (output right shifted n bits and zero filled
+              on the left)
+       n = number of bits to right-shift
+       m = number of words in shift structure
+
+
+      The m-word structures pointed to by pm are changed
+       by the shift functions!
+
+ ---------------------------------------------------------------------------
+
+     Extended Precision Math Library:
+----------------------------------------------------------------------------
+
+xsqrt
+
+     Compute the square root of an extended precision number.
+
+     struct xpr xsqrt(struct xpr z)
+        z = structure containing the input number (z>=0)
+      return value: x = structure containing square root of input
+
+          Input of a negative argument results in a printed error message.
+
+     -----------------------------------------------------------------------
+
+xexp
+
+     Compute the exponential function.
+
+     struct xpr xexp(struct xpr z)
+        z = structure containing function argument
+      return value: structure x = exp(z)
+
+     ---------------------------------------------------------
+
+xlog
+
+     Compute natural (base e) logarithms.
+
+     struct xpr xlog(struct xpr z)
+        z = structure containing function argument (z>0)
+      return value: structure x = log(z)
+
+          Input of z<=0 results in a printed error message.
+
+     ------------------------------------------------------------
+
+xtrig
+
+xtan
+
+     Compute the trigonometric functions tan, cos, and sin.
+
+     struct xpr xtan(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = tan(z)
+
+     ----------------------------------------------------------
+
+xcos
+
+     struct xpr xcos(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = cos(z)
+
+     -------------------------------------------------------
+
+xsin
+
+     struct xpr xsin(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = sin(z)
+
+     --------------------------------------------------------------------
+
+xivtrg
+
+     Compute the inverse trigonometric functions.
+
+xatan
+
+     struct xpr xatan(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = atan(z) (-pi/2 <= f <= pi/2)
+
+xasin
+
+     struct xpr xasin(struct xpr z)
+        z = structure containing function argument (|z|<=1)
+      return value: structure f = asin(z) (-pi/2 <= f <= pi/2)
+
+xacos
+
+     struct xpr xacos(struct xpr z)
+        z = structure containing function argument (|z|<=1)
+      return value: structure f = acos(z) (0 <= f <= pi)
+
+
+            Out-of-range values of z in xsin and xcos will produce
+            a printed error message from the square root function.
+
+     -----------------------------------------------------------------
+
+xhypb
+
+     Compute the hyperbolic functions tanh, sinh, and cosh.
+
+xtanh
+
+     struct xpr xtanh(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = tanh(z)
+
+     -----------------------------------------------------
+
+xsinh
+
+     struct xpr xsinh(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = sinh(z)
+
+     ----------------------------------------------------
+
+xcosh
+
+     struct xpr xcosh(struct xpr z)
+        z = structure containing function argument
+      return value: structure f = cosh(z)
+
+
+-------------------------------------------------------------------------------
+
+
+     Extended Precision Applications:
+-------------------------------------------------------------------------------
+
+xchcof
+
+     Compute the Tchebycheff expansion coefficients of a specified function.
+
+     xchcof(struct xpr *c,int m,struct xpr (*xfunc)())
+        c = pointer to array of extended precision structures for
+            computed coefficients
+        m = maximum index of coefficient array (dimension=m+1)
+        xfunc = pointer to user defined function returning extended
+                 precision values of the function f
+
+                 f(x) = c[0]/2 + Sum(k=1 to m) c[k]*Tk(x) , with
+
+                 Tk(x) the kth  Tchebycheff polynomial.
+
+     ------------------------------------------------------------------
+
+xevtch
+
+     Evaluate an extended precision Tchebycheff expansion.
+
+     struct xpr xevtch(struct xpr z,struct xpr *a,int m)
+        z = structure containing function argument
+        a = structure array containing expansion coefficients
+        m = maximum index of coefficient array (dimension=m+1)
+      return value: function value f, with
+
+                 f(x) = Sum(k=0 to m) a[k]*Tk(x) .

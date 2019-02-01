@@ -1,0 +1,16 @@
+     This directory contains test code for the functions of the 'sort'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The following list specifies the input for standard tests, whose
+     output is appended to the test source code as a comment.
+
+     tbatree   data/ttree.dat
+     tbtree    data/ttree.dat
+     tbtree0   data/ttree.dat
+     thash     data/hash.dat
+     thsort    25
+     tmsort    25
+     tqsrt     25
+     tssort    25

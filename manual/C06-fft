@@ -1,0 +1,303 @@
+                                 Chapter 6
+
+                              FOURIER ANALYSIS
+
+                                  Summary
+
+               Fourier analysis functions exploit efficient FFT
+               algorithms. The areas covered are:
+
+                        o Fast Fourier Transforms
+                        o FFT Support Utilities
+                        o Fourier Analysis Tools
+
+               Both general radix and radix-2 forms of the FFT
+               are provided. The analysis tools support the
+               computation and smoothing of power spectra and
+               the simultaneous transform of real series.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+ o  Fast Fourier Transforms:
+
+    fftgr  -------- perform an FFT on a real input series of any length.
+    fftgc  -------- transform a complex input series of any length.
+    fft2  --------- transform a complex series whose length is a power
+                    of two.
+    fft2_d  ------- perform a two-dimensional FFT on sequences with
+                    power of two length in each dimension.
+
+     The general radix FFT employs a prime factorization of the length of the
+ input series. This permits the use of efficient FFT code on series whose
+ length is not constrained to be a power of two. A call of fft2 is more
+ efficient for series whose length is a power of two.
+
+ o  FFT Support Utilities:
+
+    pfac  ---------- factor a series length into prime factors.
+    pshuf  --------- perform the pre-FFT shuffle on a pointer array.
+
+
+ o  Fourier Analysis Tools:
+
+    ftuns  ------- extract the FT of two real series used as real
+                   and imaginary parts of a complex input.
+    smoo  -------- smooth a series with a moving average window.
+    pwspec  ------ compute the power spectrum of a series.
+
+     The computation of power spectra is implemented in a form designed to 
+ simplify its use. The function pwspec does not require explicit calls of the
+ FFT and related support functions. The "pwspec" function can also call a
+ smoothing function, smoo, specifically designed to perform moving average
+ smoothing of power spectra.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     Factorization can result in truncation of the input series when the
+ length (n) does not have an efficient prime factorization. This truncation
+ can be avoided by supplying an explicit factorization of the length of the
+ input series length.
+
+     The efficiency of the data shuffle phase of the transformation is
+ enhanced for complex input series by indexing the complex array with an
+ associated pointer array. This eliminates physical shifts of data. The
+ utility function pshuf is called to shuffle these pointers when an inverse
+ Fourier transform is requested.
+
+     The following conventions are observed for Fourier transforms.
+
+         o Direct transform:
+
+           ft(w[k]) = { Sum(j=0 to n-1) f(j)*exp(-i*w[k]*j) }/n  .
+
+         o Inverse transform:
+
+           f(j) = Sum(k=0 to n-1) f(w[k])*exp(i*w[k]*j)  .
+
+         o Frequency variables:
+
+           w[k] = (2*pi*k/n) ,  for k=0,1, --- ,n-1.
+
+-------------------------------------------------------------------------------
+                        FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     The functions in this library segment employ the complex number
+     structure defined by:
+
+     #typedef struct complex {double re,im;} Cpx;
+
+     This structure is declared in the header files ccmath.h and complex.h.
+
+-------------------------------------------------------------------------------
+
+ Fast Fourier Transforms:
+-------------------------------------------------------------------------------
+
+fftgr
+
+     Compute the general radix FFT of a real input series.
+
+     void fftgr(double *x,Cpx *ft,int n,int *kk,int inv)
+        x = pointer to array of real input series (dimension = n)
+        ft = pointer to complex structure array of Fourier transform
+             output
+        n = length of input and output series
+        kk = pointer to array of factors of n (see pfac below)
+        inv = control flag, with:
+                inv='d' -> direct transform
+                inv!='d' -> inverse transform
+
+     -----------------------------------------------------------------
+
+fftgc
+
+     Compute the general radix FFT of a complex input series with output
+     series order specified in a pointer array.
+
+     void fftgc(Cpx **pc,Cpx *ft,int n,int *kk,int inv)
+        ft = pointer to input/output complex structure array
+        n = length of input and output series
+        pc = array of pointers specifying order of the elements in ft
+        kk = pointer to array of factors of n (see pfac below)
+        inv = control flag, with:
+                inv='d' -> direct transform
+                            (pc initialized internally by shuffle)
+                inv='e' -> direct transform
+                            (accept input order delivered in pc)
+                inv='i' -> inverse transformation
+                            (pc shuffled by an internal call of pshuf)
+
+          ---------------------------------------------------------
+          The correct input order for an inverse transformation is
+          generated by the function pshuf.
+          ----------------------------------------------------------
+     ---------------------------------------------------------------------
+
+fft2
+
+     Compute, in place, the radix-2 FFT of a complex input series.
+
+     void fft2(Cpx *ft,int m,int inv)
+       ft = pointer to input/output complex structure array
+            ( dimension=2^m )
+       m = dimension parameter ( series length = 2^m )
+       inv = control flag, with:
+                inv='d' -> direct Fourier transform
+                inv!='d' -> inverse transform
+
+     ----------------------------------------------------------------
+
+fft2_d
+
+     Compute a two-dimensional radix-2 FFT transformation.
+
+     void fft2_d(Cpx *a,int m,int n,int f)
+       a = pointer to complex input/output structure array
+             ( dimension= 2^m * 2^n )
+       m = first dimension parameter
+       n = second dimension parameter
+       f = control flag, with:
+              f='d' -> direct Fourier transform
+              f='i' -> inverse transform
+
+
+          The input array contains complex matrix elements
+
+           a[k,j] = a[k*2^m+j]  ,  with 0 <= k <= 2^m -1 and
+                                        0 <= j <= 2^n -1 .
+
+          The output array is
+
+           at[r,s] = { Sum(k=0 to 2^m -1){ Sum(j=0 to 2^n -1)
+                      a[k,j]*exp(-i*(w[r]*k+w[s]*k))} }/N
+
+          with  N = 2^(m+n) , for the direct transform, and
+
+           a[r,s] = { Sum(k=0 to 2^m -1){ Sum(j=0 to 2^n -1)
+                    at[k,j]*exp(i*(w[r]*k+w[s]*j))} }
+
+          for the inverse transform.
+
+-------------------------------------------------------------------------------
+
+ FFT Support Functions:
+-------------------------------------------------------------------------------
+
+pfac
+
+     Factor an integer into its prime factors.
+
+     int pfac(int n,int *kk,int fe)
+        n = input integer
+        kk = pointer to array containing factors of n, with
+               kk[0] = number of factors and the output returned
+                       n' = kk[1]*kk[2]* -- *kk[kk[0]]
+               (The dimension of kk should be 32.)
+        fe = control flag, with:
+               fe = 'e' -> even integer output required
+               fe = 'o' -> odd integers allowed
+       return value: n' = integer factored (n' <= n)
+
+
+          All prime factors < 101 are considered, with n' decremented
+          if a factorization fails. The dimension 32 for the factor
+          array kk is sufficient to hold all factors of 32-bit integers.
+
+     --------------------------------------------------------------------
+
+pshuf
+
+     Perform a pre-FFT shuffle of the pointer array.
+
+     void pshuf(Cpx **pa,Cpx **pb,int *kk,int n)
+        n = array size
+        kk = pointer to array of factors of n (see pfac)
+        pb = pointer to n dimensional array of input pointers
+        pa = pointer to n dimensional array of output (shuffled) pointers
+
+
+         This function is used to support inversion of Fourier transforms,
+         since it can shuffle an array with any specified order. It is
+         called by fftgc when an inverse transformation is specified.
+
+-------------------------------------------------------------------------------
+
+     Fourier Analysis Tools
+-------------------------------------------------------------------------------
+
+ftuns
+
+     Extract the FT of two real series from the FT of a complex composite
+     series f[k] = a[k] + i*b[k].
+
+     void ftuns(Cpx **pt,int n)
+       n = dimension of Fourier series
+       pt = pointer to n dimensional array of pointers to a complex
+            array containing the Fourier transform
+              ( This complex array is altered, with output:
+                 pt[0]-> (real fta[0] , real ftb[0])
+                 pt[k]-> fta[k]  and  pt[n-k]-> ftb[k]
+                 for k=1 to n/2-1 if n is even or
+                 for k=1 to (n-1)/2 if n is odd
+                 if n is even  pt[n/2] ->
+                      (real fta[n/2] , real ftb[n/2]) )
+
+     ---------------------------------------------------------------
+
+smoo
+
+     Smooth a series, using a moving average window (specialized for
+     power spectra).
+
+     void smoo(double *x,int n,int m)
+       x = pointer to array containing series (converted to a
+           smoothed version at exit)
+       n = dimension of input series
+       m = smoother control ( points in the smoothed series are
+           averaged over 2*m+1 points centered on the smoothed point )
+
+
+          This procedure is designed for power spectra. The series
+          symmetries, periodicity with period n and reflection symmetry
+          x[-k]=x[k], are both exploited. In addition, the points x[0]
+          and x[n/2] are replaced by averages with the central point
+          omitted, because these points have chi-square-1 rather than
+          chi-square-2 distribution in power spectra. Smoothed points,
+          denoted by subscript s, are given by
+
+          xs[j] = { Sum(i=j-m to j+m) x'[j] }/(2m+1) , where
+
+          x'[0] = { Sum(j=1 to m) x[j] }/m  ,
+          x'[n/2] = { Sum(j=n/2-m to n/2-1) x[j] }/m  ,
+          and x'[j] = x[j] for all other j.
+
+     -----------------------------------------------------------------
+
+pwspec
+
+     Compute the power spectrum of a series.
+
+     int pwspec(double *x,int n,int m)
+       x = pointer to array containing input/output series
+           (converted to a power spectra at exit)
+       n = number of points in the series
+       m = control flag specifying order of smoothing, with:
+             m=0 -> no smoothing
+             m>0 -> smooth output power spectra, using
+                     an order m average (see smoo)
+      return value: n = size of series used to compute power spectra
+                        (n <= input n, even values required)
+
+
+          The output power spectra is defined by
+
+           ps(w[j]) = | ft[j] |^2 / <x^2>  ,  where
+
+           <x^2> = { Sum(j=0 to n-1) x[j]^2 }/n .
+
+          This normalization yields  Sum(j=0 to n-1) ps(w[j]) = 1  .

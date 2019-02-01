@@ -1,0 +1,544 @@
+
+                                  Chapter 3
+
+                           GEOMETRY and TRIGONOMETRY
+
+                                   Summary
+
+
+             The geometry functions provide basic support for spatial
+             analysis in multiple dimensions. They are designed to be
+             effective in 3D graphics applications. The following
+             geometrical computations are covered:
+
+                          o Vector Operations
+                          o Rotations
+                          o Plane Trigonometry
+                          o Spherical Trigonometry
+                          o Hyperbolic Trigonometry
+
+-----------------------------------------------------------------------------
+
+ Note on Contents
+
+     The geometry and trigonometry functions in the library simplify many
+ elementary geometric computations.
+
+ o  Vector Operations:
+
+    crossp  ------- compute the cross-product of two 3-vectors.
+    dotp  --------- compute the inner (dot) product of two vectors.
+    metpr  -------- compute an inner product based on a metric matrix.
+    scalv  -------- multiply a vector by a scalar.
+    trvec  -------- translate a vector.
+    leng  --------- compute the length of a vector or difference vector.
+
+     Vector operations cover cross and scalar products as well as scaling
+ and translation operations. The dimensionality of the vector is restricted
+ only for the 3-dimensional cross-product.
+
+ o  Rotations:
+
+    euler  -------- rotate a set of 3-vectors using a rotation
+                    specified by its Euler angles.
+    rotax  -------- rotate a 3-vector about a specified axis.
+
+      The function performing rotations about an axis has a mode in which
+ rotations through a fixed angular increment can be repeated efficiently.
+ This is useful in many 3D graphics applications.
+
+ o  Trigonometry:
+
+     The trigonometry functions generate solutions for the unknown elements
+ of triangles and compute triangle areas. Functions are provided for
+ triangles in spaces with constant curvature zero (Euclidean), positive
+ (Spherical), and negative (Hyperbolic).
+
+    Plane Trigonometry
+
+    trgsas  ------- solve a plane triangle given sas.
+    trgasa  ------- solve a plane triangle given asa.
+    trgsss  ------- solve a plane triangle given all sides (sss).
+    trgssa  ------- solve for all feasible solutions given ssa.
+    trgarea  ------ find the area of a plane triangle given its sides.
+
+    Spherical Trigonometry
+
+    strgsas  ------ solve a spherical triangle given sas.
+    strgasa  ------ solve a spherical triangle given asa.
+    strgsss  ------ solve a spherical triangle given all sides (sss).
+    strgaaa  ------ solve a spherical triangle given all angles (aaa).
+    strgarea  ----- find the area of a spherical triangle given its
+                    angles.
+
+    Hyperbolic Trigonometry
+
+    htgsas  ------- solve a hyperbolic triangle given sas.
+    htgasa  ------- solve a hyperbolic triangle given asa.
+    htgsss  ------- solve a hyperbolic triangle given all sides (sss).
+    htgaaa  ------- solve a hyperbolic triangle given all angles (aaa).
+    htgarea  ------ find the area of a hyperbolic triangle given its
+                    angles.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments:
+
+     Rotations
+
+     Rotations may be parameterized either by a set of Euler angles or by the
+ axis and angle of rotation. The convention that positive rotations are right
+ handed (anticlockwise) is consistently adopted. In addition, the y-axis is
+ used as the rotation axis corresponding to the second Euler angle. These
+ conventions are widely adopted, but by no means universal. Thus, the user is
+ advised to identify the conventions employed, when an algorithm specified in
+ terms of rotations is used.
+
+     Trigonometry
+
+     Plane and spherical trigonometry have many well known applications,
+ including application to navigation problems. Spherical trigonometry can
+ also be applied to the composition of rotations in an intuitive geometric
+ fashion. Hyperbolic trigonometry is less common, but it has very
+ important applications in relativistic kinematics. The geometry of
+ velocities in special relativity is a three dimensional Lobachevsky space
+ of constant negative curvature. Thus, hyperbolic trigonometry is a natural
+ tool to use in analyzing transformations between inertial frames.
+
+-------------------------------------------------------------------------------
+                          FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+ Vector Operations:
+-------------------------------------------------------------------------------
+
+crossp
+
+     Compute the cross product of two 3-vectors, h = u x v.
+
+     void crossp(double *h,double *u,double *v)
+       h = pointer to array of output 3-vector
+       u = pointer to array of left factor 3-vector
+       v = pointer to array of left factor 3-vector
+           (the arrays have dimension 3 and components
+            are stored in [x,y,z] right handed order)
+
+     ------------------------------------------------------------------
+
+dotp
+
+     Compute the dot product of two real vectors s = u~*v.
+
+     double dotp(double *,double *v,int n)
+       u = pointer to array of vector u
+       v = pointer to array of vector v
+       n = dimension (dim(u)=dim(v)=n)
+      return value: s = u~*v.
+
+     -------------------------------------------------------
+
+metpr
+
+     Compute the "metric" product s = u~*A*v of vectors u and v.
+
+     double metpr(double *u,double *a,double *v,int n)
+       u = pointer to array of input vector u.
+       v = pointer to array of input vector v.
+       a = pointer to array of metric matrix A
+       n = dimension of vectors (dim(u)=dim(v)=n, dim(a)=n*n)
+      return value: s = u~*A*v.
+
+     ------------------------------------------------------------
+
+scalv
+
+     Multiply all components of a vector v by a scalar s, v -> s*v.
+
+     void scalv(double *v,double s,int n)
+        v = pointer to first component of vector (scaled in place,
+             with v' = s* v )
+        s = isotropic scale factor
+        n = dimension of vector
+
+     -----------------------------------------------------------------
+
+trvec
+
+     Compute a translated vector c = a + b.
+
+     void trvec(double *c,double *a,double *b,int n)
+        c = pointer to first component of output vector
+        a = pointer to first component of vector-a
+        b = pointer to first component of vector-b
+        n = dimension of vectors
+
+     -----------------------------------------------------------
+
+leng
+
+     Compute the length of a difference vector.
+
+     #include <math.h>
+     double leng(double *a,double *b,int n)
+        a = pointer to first component of vector-a
+        b = pointer to first component of vector-b
+            ( b=NULL -> vector-b has all components equal to zero )
+        n = dimension of vectors
+     return value: d = length of difference vector |a - b|
+
+-------------------------------------------------------------------------------
+
+ Rotations:
+-------------------------------------------------------------------------------
+
+euler
+
+     Rotate a set of vectors, using a rotation specified by Euler angles.
+
+     void euler(double *pv,int m,double a,double b,double c)
+        pv = pointer to array containing a sequence of vector components
+             ( [x,y,z] order for each vector )
+        m = number of vectors in array pv (dimension=3*m)
+        a,b,c = Euler angles of rotation R(a,b,c) about axes
+                z,y, and z. ( All angles in radians, with
+                positive angles -> anticlockwise rotations. )
+
+     -----------------------------------------------------------------
+
+rotax
+
+     Rotate a vector, using a rotation specified by axis and angle.
+
+     void rotax(double *v,double az,double pa,double ang,int k)
+        v = pointer to array containing vector ( components in
+             [x,y,z] order, rotated in place )
+        az = azimuthal angle of rotation axis
+        pa = polar angle of rotation axis
+        ang = angle of rotation
+              ( All angles in radians, with positive angles
+                 -> anticlockwise rotations. )
+        k = control flag, with:
+             k=0 -> compute rotation matrix from input angles
+             k>0 -> use rotation matrix computed at last k=0 call
+
+     The k>0 mode is useful in creating a set of vectors to specify an
+     arc in three-dimensions.
+
+-------------------------------------------------------------------------------
+ Trigonometry:
+-------------------------------------------------------------------------------
+
+ Euclidean Plane Trigonometry:
+-------------------------------------------------------------------------------
+
+     Note: The angle inputs and outputs are assumed to be interior
+           angles of the triangles. The angular unit for input and
+           output is the radian. Ranges for sides and angles are:
+
+           side > 0 ; and  0 < angle < pi .
+
+           The solution of triangles with two sides and an angle
+           opposite to one of those sides given is potentially
+           ambiguous. Depending on the inputs, there may be two,
+           one, or no valid solutions. The function 'trgssa'
+           returns all valid solutions.
+
+     -----------------------------------------------------------------
+
+trgsas
+
+     Find the remaining elements of a plane triangle given two sides
+     and the included angle.
+
+     void trgsas(double a,double g,double b,double *ans)
+       a = side of triangle
+       g = angle of triangle between sides a and b (radians)
+       b = side of triangle
+       ans = pointer to three dimensional array to be loaded with
+             ans[0] = angle opposite side a (radians)
+             ans[1] = side opposite angle g
+             ans[2] = angle opposite side b (radians)
+
+     --------------------------------------------------------------
+
+trgasa
+
+     Find the remaining elements of a plane triangle given two angles
+     and the included side.
+
+     int trgasa(double a,double ss,double b,double *asn)
+       a = angle of triangle (radians)
+       ss = side of triangle between angles a and b
+       b = angle of triangle (radians)
+       asn = pointer to three dimensional array to be loaded with
+             asn[0] = side opposite angle a
+             asn[1] = angle opposite side ss (radians)
+             asn[2] = side opposite angle b
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (a or b < 0)
+
+     --------------------------------------------------------------------
+
+trgsss
+
+     Find the angles of a plane triangle given its three sides.
+
+     int trgsss(double a,double b,double c,double *ang)
+     double a,b,c,*ang;
+       a = side of triangle
+       b = side of triangle
+       c = side of triangle
+       ang = pointer to three dimensional array to be loaded with
+             ang[0] = angle opposite side a (radians)
+             ang[1] = angle opposite side b (radians)
+             ang[2] = angle opposite side c (radians)
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (sides violate
+                          triangle inequality)
+
+     ------------------------------------------------------------------
+
+trgssa
+
+     Find possible solutions for the remaining elements of a plane
+     triangle given two sides and an angle adjacent to only one side.
+
+     int trgssa(double a,double b,double ba,double *an)
+       a = side of triangle
+       b = side of triangle
+       ba = angle of triangle opposite side b
+       an = pointer to six dimensional array to be loaded with
+            possible solutions
+            an[0] = third side of triangle (solution #1)
+            an[1] = angle of triangle opposite third side (radians)
+            an[2] = angle of triangle opposite side a (radians)
+             (solution #2)
+            an[3] = third side of triangle (solution #2) or 0
+            an[4] = angle of triangle opposite third side (radians)
+            an[5] = angle of triangle opposite side a (radians)
+      return value: solution status flag with
+                     0 -> at least one solution
+                    -1 -> no valid solutions
+
+     Note: If only one valid solution exists, an[3]=an[4]=an[5]=0
+           is return as the second solution.
+
+     ---------------------------------------------------------------
+
+trgarea
+
+     Find the area of a plane triangle given its three sides.
+
+     double trgarea(double a,double b,double c)
+       a = side of triangle
+       b = side of triangle
+       c = side of triangle
+      return value: A = area of the plane triangle
+
+-------------------------------------------------------------------------------
+
+ Spherical Trigonometry:
+-------------------------------------------------------------------------------
+
+     Note: The angle inputs and outputs are assumed to be interior
+           angles of the triangles. The angular unit for input and
+           output is the radian. Ranges for sides and angles are:
+
+           0 < side < pi  ; and  0 < angle < pi or 0 > angle > -pi.
+
+           Normally the angle inputs are assumed to be positive.
+           However, to permit use in applications where the
+           orientation of the triangle is significant, the
+           functions 'stgsas' and 'stgasa' can accept negative
+           angles as inputs provided that both angle inputs to
+           'stgasa' have the same sign. This ensures that all
+           interior angles of the triangle will have identical
+           sign. Angle inputs to 'stgaaa' and 'stgarea' must be
+           positive.
+
+     ---------------------------------------------------------------------
+
+stgsas
+
+     Find the remaining elements of a spherical triangle given two sides
+     and the included angle.
+
+     void stgsas(double a,double g,double b,double *ang)
+       a = side of the triangle (radians)
+       g = angle between sides a and b (radians)
+       b = side of triangle (radians)
+       ang = pointer to three dimensional array to be loaded with
+             ang[0] -> angle opposite side a (radians)
+             ang[1] -> side opposite angle g (radians)
+             ang[2] -> angle opposite side b (radians)
+
+     ----------------------------------------------------------------
+
+stgasa
+
+     Find the remaining elements of a spherical triangle given two
+     angles and the included side.
+
+     int stgasa(double a,double c,double b,double *ang)
+       a = angle of the triangle (radians)
+       c = side between angles a and b (radians)
+       b = angle of triangle (radians)
+       ang = pointer to three dimensional array to be loaded with
+             ang[0] -> side opposite angle a (radians)
+             ang[1] -> angle opposite side c (radians)
+             ang[2] -> side opposite angle b (radians)
+     return value: input status flag with
+                    0 -> success
+                   -1 -> inputs rejected (angles have
+                         opposite sign)
+
+     -----------------------------------------------------------------
+
+stgsss
+
+     Find the angles of a spherical triangle given its three sides.
+
+     int stgsss(double a,double b,double c,double *ang)
+       a = side of triangle (radians)
+       c = side of triangle (radians)
+       b = side of triangle (radians)
+       ang = pointer to three dimensional array to be loaded with
+             an[0] -> angle opposite side a (radians)
+             an[1] -> angle opposite side c (radians)
+             an[2] -> angle opposite side b (radians)
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (sides violate
+                          triangle inequality)
+
+     -------------------------------------------------------------
+
+stgaaa
+
+     Find the sides of a spherical triangle given its three angles.
+
+     int stgaaa(double a,double b,double c,double *ang)
+       a = angle of triangle (radians > 0)
+       c = angle of triangle (radians > 0)
+       b = angle of triangle (radians > 0)
+       ang = pointer to three dimensional array to be loaded with
+             ang[0] -> side opposite angle a (radians)
+             ang[1] -> side opposite angle c (radians)
+             ang[2] -> side opposite angle b (radians)
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (angle sum <= pi)
+
+     ----------------------------------------------------------------
+
+stgarea
+
+     Find the area of a spherical triangle given its three angles.
+
+     double stgarea(double a,double b,double c)
+       a = angle of triangle (radians > 0)
+       b = angle of triangle (radians > 0)
+       c = angle of triangle (radians > 0)
+      return value: A = area of spherical triangle
+
+     Note: Each spherical triangle has a dual triangle with sides
+           s and angles A related by
+
+           s' = pi - A  for sides and  A' = pi - s  for angles.
+
+-------------------------------------------------------------------------------
+
+ Hyperbolic Trigonometry:
+-------------------------------------------------------------------------------
+
+     Note: The angle inputs and outputs are assumed to be interior
+           angles of the triangles. The angular unit for input and
+           output is the radian. Ranges for sides and angles are:
+
+           side > 0 ; and  0 < angle < pi .
+
+     -------------------------------------------------------------------
+
+htgsas
+
+     Solve for the remaining elements of a hyperbolic triangle given
+     two sides and the included angle.
+
+     void htgsas(double a,double g,double b,double *an)
+       a = side of the triangle
+       g = angle between sides a and b (radians)
+       b = side of triangle
+       an = pointer to three dimensional array to be loaded with
+            an[0] -> angle opposite side a (radians)
+            an[1] -> side opposite angle g
+            an[2] -> angle opposite side b (radians)
+
+     --------------------------------------------------------------
+
+htgasa
+
+     Solve for the remaining elements of a hyperbolic triangle given
+     two angles and the included side.
+
+     int htgasa(double a,double cc,double b,double *ans)
+       a = angle of triangle (radians)
+       cc = side of triangle adjacent to angles a and b
+       b = angle of triangle (radians)
+       ans = pointer to three dimensional array to be loaded with
+             ans[0] -> side opposite angle a
+             ans[1] -> angle opposite side cc
+             ans[2] -> side opposite angle b
+     return value: input status flag with
+                     0 -> success
+                    -1 -> input rejected (angle <0)
+
+     ----------------------------------------------------------------
+
+htgsss
+
+     Solve for the angles of a hyperbolic triangle given its three angles.
+
+     int htgsss(double a,double b,double c,double *ang)
+       a = side of triangle
+       b = side of triangle
+       c = side of triangle
+       ang = pointer to three dimensional array to be loaded with
+             ang[0] -> angle opposite side a
+             ang[1] -> angle opposite side b
+             ang[2] -> angle opposite side c
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (sides violate
+                          triangle inequality)
+
+     -------------------------------------------------------------
+
+htgaaa
+
+     Solve for the sides of a hyperbolic triangle given three angles.
+
+     int htgaaa(double a,double b,double c,double *as)
+       a = angle of triangle (radians)
+       b = angle of triangle (radians)
+       c = angle of triangle (radians)
+       as = pointer to three dimensional array to be loaded with
+            as[0] -> side opposite angle a
+            as[1] -> side opposite angle b
+            as[2] -> side opposite angle c
+      return value: input status flag with
+                     0 -> success
+                    -1 -> inputs rejected (angle sum >= pi)
+
+     -----------------------------------------------------------------
+
+htgarea
+
+     Find the area of a hyperbolic triangle given three angles.
+
+     double htgarea(double a,double b,double c)
+       a = angle of triangle (radians)
+       b = angle of triangle (radians)
+       c = angle of triangle (radians)
+      return value u = area of hyperbolic triangle

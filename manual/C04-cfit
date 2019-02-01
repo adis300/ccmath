@@ -1,0 +1,872 @@
+
+                              Chapter 4
+ 
+                   CURVE FITTING and LEAST SQUARES
+
+                               Summary
+
+               The curve fitting functions support a full
+               spectrum of techniques for fitting curves to
+               data. The areas covered are:
+
+                        o Rational Approximations
+                        o Spline Curve Fits
+                        o Least Square Fits
+
+               Rational approximation functions use a
+               Tchebycheff Pade' method to obtain nearly optimal
+               approximations.  Simple cubic and tensioned
+               splines are supported. The least square functions
+               estimate polynomial, general linear, and
+               nonlinear least square fits.
+
+
+ Notes on Contents
+
+     This segment of the library covers methods for approximating functions
+ efficiently, computation of smooth spline approximation curves from a
+ discrete set of values, and a comprehensive set of least squares estimation
+ techniques.
+
+ o  Rational Approximations:
+
+     The evaluation of elementary functions is typically implemented by using
+ an optimized rational approximation.
+
+    chcof  -------- compute Tchebycheff expansion coefficients.
+    chpade  ------- compute a rational approximation.
+    ftch   -------- evaluate a rational Tchebycheff approximation.
+
+ The 'chpade' function fits a rational Tchebycheff Pade' approximation to
+ a specified function. This form is known to yield an approximation very
+ close to the optimal (ie. minimum error) rational approximation. Thus, it
+ provides a computationally efficient technique for generating function
+ values.
+
+ o  Spline Curve Fits:
+
+    cspl  -------- compute a cubic spline interpolation.
+    csplp  ------- compute a cubic spline interpolation to a
+                   periodic curve.
+    csfit  ------- evaluate a cubic spline fit.
+    tnsfit  ------ evaluate a "tensioned" spline fit.
+    dcspl  ------- evaluate the derivatives of a cubic spline fit.
+    
+     Cubic splines are an excellent class of smooth interpolation functions.
+ These splines are continuous as are their first and second derivatives.
+ The library functions fit both open and closed or periodic curves.
+ Splines in tension can be substituted for cubic splines in cases where the
+ cubic spline interpolation introduces spurious oscillations in the fitted
+ curve. This technique is frequently useful in graphics applications such as
+ contour plotting.
+
+ o  Least Square Fits:
+
+     Linear Least Squares
+
+    qrlsq  ------ linear least squares using QR reduction.
+    qrvar  ------ compute the parameter variance matrix resulting
+                  from a QR least squares solution.
+    lsqsv  ------ perform a rank analysis on a singular value
+                  decomposition of a linear least squares problem.
+    svdlsq  ----- compute a SVD analysis of a linear least squares
+                  system.
+    sv2lsq  ----- compute SVD efficiently for measurements >> number
+                  of parameters.
+
+     The QR reduction is a numerically stable algorithm for computing a least
+ squares solution when the design matrix of the system is known to have full
+ rank. Singular value decomposition is the technique that should be applied
+ when this assumption of full rank breaks down. It provides the maximum
+ amount of information on the character of the system, and ensures a
+ reasonable solution in all cases.
+
+     Polynomial Least Squares
+
+    plsq  ------ compute a least squares solution using orthogonal
+                 polynomials.
+    pplsq  ----- compute a least squares fit to a polynomial of
+                 specified degree.
+    evpsq  ----- evaluate the fit function of an orthogonal polynomial
+                 fit.
+    evpsqv  ---- evaluate the fit function and rms sigma of an
+                 orthogonal polynomial fit.
+    psqcf  ----- extract the polynomial coefficient vector of
+                 specified degree from an orthogonal fit.
+    psqvar  ---- compute the variance matrix of a polynomial
+                 coefficient vector.
+
+     The polynomial least square estimators are based on a numerically stable
+  approach. It returns a set of parameters that support fits
+ with polynomials of any degree up to the maximum specified. It also permits
+ computation of the parameter variance matrix and rms sigmas of fit functions,
+ in cases where this statistical data is desired.
+
+     Nonlinear Least Squares
+
+    seqlsq  ------- perform a sequential iteration of least square
+                    parameter estimation.
+    gnlsq  -------- compute a batch Gauss-Newton least square fit from
+                    specified initial parameter values.
+    fitval  ------- evaluate the value and rms sigma of a nonlinear
+                    least square fit function.
+
+     The library supports a novel mix of sequential and batch mode (Gauss-
+ Newton) estimation of nonlinear least-square fits. The sequential fit is
+ highly effective in the initial parameter search phase of nonlinear least
+ squares estimation. A procedure that starts with a few sequential search
+ passes and refines the resulting estimate using the Gauss-Newton estimator,
+ is highly effective in nonlinear least square fits.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The availability of a nearly optimal rational approximation for function
+ evaluation is an important feature of the library. Efficient computation can
+ be based on the use of this approximation so that the code implemented for
+ initial evaluation can be biased towards accuracy and range of validity.
+ Use of this technique is recommended for any computationally intensive
+ application that requires frequent evaluations of a function.
+
+     The main novelty in this segment is the implementation of a sequential
+ estimator for nonlinear least squares problems. Experience indicates that
+ this represents a powerful approach to searching parameter space in these
+ very difficult problems. The use of adaptive least squares techniques goes
+ back to Gauss, and it is also featured in the Kalman-Bucy filters employed
+ in modern control theory. Nonlinear estimation is yet another domain where
+ this approach is recommended.
+
+------------------------------------------------------------------------------
+                        FUNCTION SYNOPSES
+------------------------------------------------------------------------------
+
+ Tchebycheff Polynomial Approximations:
+------------------------------------------------------------------------------
+
+chcof
+
+     Compute the coefficients of a Tchebycheff expansion of the function
+     func(x). (These coefficients can be used as input to chpade.)
+
+     chcof(double c[],int m,double (*func)())
+        c = array containing m+1 values of computed coefficients
+        m = maximum degree of fit (polynomials 0 --- m used)
+        func = pointer to user supplied function
+                ( Range of (*func)(x) evaluation -1 <= x <= 1. )
+
+         The Tchebycheff expansion is given by
+
+          f = c[0]/2 + Sum(i=1 to m) c[i]*Ti(x) , where
+          Ti(x) is the ith Tchebycheff polynomial.
+
+     -----------------------------------------------------------
+
+chpade
+
+     Compute the coefficients of a rational Tchebycheff approximation.
+
+     chpade(double c[],double a[],int m,double b[],int n)
+        c = array of dimension m+2*n+2 containing the coefficients of
+             a Tchebycheff series expansion of the function f
+        a = m+1 dimensional array of numerator coefficients
+        m = degree of numerator polynomial
+        b = n+1 dimensional array of denominator coefficients
+             ( b[0]=1.0 , by convention )
+        n = degree of denominator polynomial
+
+
+         Here the input expansion gives
+
+          f = c[0]/2 + Sum(i=1 to N) c[i]*Ti(x) , with N=m+2n+1.
+
+         The output approximation to is:
+
+          f = {Sum(i=0 to m) a[i]*Ti(x)}/{1+Sum(j=1 to m) b[i]Ti(x))} .
+
+     -------------------------------------------------------------------
+
+ftch
+
+     Evaluate a rational Tchebycheff Pade approximation.
+
+     double ftch(double x,double a[],int m,double b[],int n)
+        x = value of independent variable ( -1 <=x <= 1 )
+        a = m+1 dimensional array of numerator coefficients
+        m = degree of numerator polynomial
+        b = n+1 dimensional array of denominator coefficients
+        n = degree of denominator polynomial
+      return value: f = rational approximation of f(x), with
+
+          f = {Sum(i=0 to m) a[i]*Ti(x)}/{1+Sum(j=1 to m) b[i]Ti(x))} .
+
+
+-----------------------------------------------------------------------------
+ Spline Curve Fits:
+-----------------------------------------------------------------------------
+
+cspl
+
+     Compute a cubic or tensioned spline fit to an open curve.
+
+     cspl(double x[],double y[],double z[],int m,double tn)
+        x = array containing m+1 x-coordinates of the curve
+        y = array containing m+1 y-coordinates of the curve
+        z = output array of m+1 second derivatives
+             ( the boundary condition assumes z[0]=z[m]=0. )
+        m = number of intervals (m+1 input points)
+        tn = tension parameter, with:
+              tn = 0. -> cubic spline
+              tn > 0. -> spline in tension
+
+     -----------------------------------------------------------------
+
+csplp
+
+     Compute a cubic or tensioned spline approximation to a closed curve.
+
+     csplp(double x[],double y[],double z[],int m,double tn)
+        x = array containing m+1 x-coordinates of the curve
+        y = array containing m+1 y-coordinates of the curve
+        z = output array of m+1 second derivatives
+             ( The boundary condition is periodic, with equal
+               first and second derivatives at x[0] and x[m]. )
+        m = number of intervals (m+1 input points)
+        tn = tension parameter, with:
+              tn = 0. -> cubic spline
+              tn > 0. -> spline in tension
+
+     ---------------------------------------------------------------
+
+csfit
+
+     Evaluate a cubic spline curve at any interior point.
+
+     double csfit(double w,double x[],double y[],double z[],int m)
+        w = value of the independent variable
+        x,y,z = m+1 dimensional arrays define a cubic spline
+        m = number of intervals
+      return value: cs(w) = cubic spline interpolation if  x[0]<=w<=x[m]
+                            ( 0.0 is returned for w<x[0] or w>x[m] )
+
+        This function is used to evaluate splines computed with tn=0.0.
+
+     ------------------------------------------------------------------
+
+dcspl
+
+     Evaluate the derivative of a cubic spline fit at interior points.
+
+     double dcspl(double x,double u[],double v[],double z[],int m)
+        x = value of the independent variable
+        u,v,z = m+1 dimensional arrays define a cubic spline
+        m = number of intervals
+      return value: dcs/dx = derivative of cubic spline
+                             interpolation if  u[0] <= x <=u[m]
+                            ( 0.0 is returned for x < u[0] or x > u[m] )
+
+     --------------------------------------------------------------------
+
+tnsfit
+
+     Evaluate a tensioned spline curve at any interior point.
+
+     double tnsfit(double w,double x[],double y[],double z[],int m,double tn)
+        w = value of independent variable
+        x,y,z = m+1 dimensional arrays of tensioned spline coefficients
+        m = number of intervals
+        tn = spline tension parameter (should match value tn > 0.0 used in
+              computing the spline parameters)
+      return value: tns(w) = value of tensioned spline interpolation
+                             when x[0] <= w <= x[m]
+                             ( 0.0 is returned if w < x[0] or w > x[m] )
+
+
+     Increasing the tension parameter from tn=0 produces a sequence of
+     curve fits that varies continuously from the cubic spline (tn=0)
+     to a linear interpolation between anchor points (tn >> 1).
+
+
+------------------------------------------------------------------------------
+
+ Linear Least Squares:
+------------------------------------------------------------------------------
+
+qrlsq
+
+     Compute a linear least squares solution for A*x = b
+     using a QR reduction of the matrix A.
+
+     double qrlsq(double *a,double *b,int m,int n,int *f)
+       a = pointer to m by n design matrix array A
+           This is altered to upper right triangular
+           form by the computation.
+       b = pointer to array of measurement values b
+           The first n components of b are overloaded
+           by the solution vector x.
+       m = number of measurements (dim(b)=m)
+       n = number of least squares parameters (dim(x)=n)
+           (dim(a)=m*n)
+       f = pointer to store of status flag, with
+              *f = 0  -> solution valid
+              *f = -1 -> rank of A < n (no solution)
+      return value: ssq = sum of squared fit residuals
+
+
+     The QR algorithm employs an orthogonal transformation to reduce
+     the matrix A to upper right triangular form, with
+
+          A = Q*R  and  R = Q~*A .
+
+     The matrix R has non-zero components confined to the range
+     0 <= i <= j < n.  The system vector b is transformed to
+
+          b' = U~*b  and  Sum(k=j to n-1) R[j,k]*x[k] = b'*[j]
+
+     is solved for x, using 'solvru' (see Chapter 1). The sum
+     of squared residuals is
+
+          ssq = Sum(i=n to m-1){b~[i]^2} .
+
+     ----------------------------------------------------------------
+
+qrvar
+
+     Compute the parameter variance matrix V for QR least squares.
+
+     double qrvar(double *a,int m,int n,double ssq)
+       a = pointer to a-matrix output of qrlsq
+           Only the n by n upper right triangular portion R
+           is used. The first n rows are replaced by the
+           parameter variance matrix V.
+       m = number of measurements (m > n assumed)
+       n = number of parameters (dim(a)>=n*n)
+       ssq = sum of squared fit residuals
+      return value: s = ssq/(m-n), the estimated measurement
+                                   variance
+
+
+     The parameter variance matrix is computed by assuming that the
+     measurements are independent, with measurement variance
+
+          sigsq = ssq/(m-n) and matrix V given by
+          V = sigsq*Inv(R~*R) , with R an upper right
+          triangular matrix whose non-zero elements are
+          equal to corresponding elements of the matrix A
+          output by qrlsq.
+
+     --------------------------------------------------------------------
+
+     The singular value decomposition of the design matrix A can be
+     used to derive a least squares solution in cases where the QR
+     method breaks down because A does not have full rank. In this
+     sense, SVD is a sure-fire approach to linear least squares.
+     The method is based on the decomposition
+
+          A = U*D*V~ , with U and V orthogonal matrices and
+          D an m by n matrix (m>=n) whose non-zero elements are
+          D[i,i]=d[i] for i=0 to n-1.
+          The resulting least squares solution for x is given by
+
+          x = V*Inv(D)*U~*b  for x[i] with i=0 to n-1.
+
+     The function 'lsqsv' employs a threshold test to identify small
+     singular values that correspond to rank deficiency in the
+     design matrix. This threshold is specified as a user input. When
+     D[i,i] < th , the corresponding inverse element Inv(D)[i,i]
+     is replaced by zero, so that the ith measurement component
+     is not used in the solution.
+     ------------------------------------------------------------------
+
+lsqsv
+
+     Generate a SVD based solution for the linear least
+     squares system  A*x = b.
+
+     double lsqsv(double *x,int *pr,double *var,double *d,double *b, \
+                  double *v,int m,int n,double th)
+       x = pointer to array to be loaded with least squares
+           parameters x
+       pr = pointer to store for rank of system solution r
+            (r<=n, and if r<n the parameter variance matrix
+             is singular.)
+       var = pointer to array for output of parameter variance
+             matrix. (This output is suppressed if the input
+             var = NULL.)
+       d = pointer to input array of system singular values
+       b = pointer to input array of rotated system vector
+       v = pointer to input array of orthogonal transformation
+           matrix V
+           (Arrays d,b,v are the output of a singular value
+            decomposition by svdlsq or sv2lsq. They are not
+            altered by this function.)
+       m = number of measurements (dim(b)=m)
+       n = number of parameters
+           (dim(x)=dim(d)=n,dim(v)=dim(var)=n*n)
+       th = singular value threshold parameter
+            Components corresponding to singular values
+            d[i]<th are not used in the solution.
+      return value: ssq = the sum of squared fit residuals
+
+
+     This function operates on the output of 'svdlsq' or 'sv2lsq'.
+     If a rank deficiency is detected (*pr < n), the returned ssq
+     is given by
+
+          ssq = Sum(i=n to m-1){b'[i]^2} + Sum([k]){b'[k]^2}
+
+     where [k] denotes the indices of the zero singular values,and
+     b'= U~*b.
+
+     The parameter variance matrix (returned when requested) is
+
+          V = V*K*V~ , with non-zero diagonal elements
+          K[i,i] = (ssq/(m-r))/(d[i]^2).
+
+     This variance matrix is singular when the rank r < n.
+
+     -----------------------------------------------------------------
+
+svdlsq
+
+     Perform a singular value decomposition of the linear least
+     squares system A*x = b.
+
+     int svdlsq(double *d,double *a,double *b,int m,double *v,int n)
+       d = pointer to array of computed singular values
+       a = pointer to array of design matrix A
+           This matrix is altered by the computation.
+       b = pointer to array of measurement values b
+           The computation replaces b by the vector U~*b=b'. 
+       m = number of measurements (dim(b)=m)
+       n = number of fit parameters x (dim(d)=n,dim(a)=m*n)
+      return value: status flag 0 -> normal exit
+                               -1 -> input error m < n
+
+
+     This form of least squares SVD is designed for use when the number
+     of measurements m is comparable to the number of parameters n.
+     The quantities returned are the orthogonal matrix V, the modified
+     system vector b~, and the singular values d[i].
+
+     -------------------------------------------------------------------
+
+sv2lsq
+
+     Perform a singular value decomposition ot a linear least
+     squares system efficiently when m >> n.
+
+     int sv2lsq(d,a,b,m,v,n)
+
+     double *d,*a,*b,*v; int m,n;
+       d = pointer to array of computed singular values
+       a = pointer to array of design matrix A
+           This matrix is altered by the computation.
+       b = pointer to array of measurement values b
+           The computation replaces b by the vector b'=U~*b. 
+       m = number of measurements (dim(b)=m)
+       n = number of fit parameters x (dim(d)=n,dim(a)=m*n)
+      return value: status flag 0 -> normal exit
+                               -1 -> input error m < n
+
+
+     This algorithm is more efficient for SVD when m > (3/2)n, and
+     it should certainly be used in place of 'svdlsq' when m > 2n.
+
+
+     --------------------------------------------------------------------
+
+     Auxiliary function for linear least squares:
+
+     Perform the QR part of the SVD least squares reduction.
+     (Called by both svdlsq and sv2lsq.)
+
+     int qrbdbv(double *d,double *e,double *b,double *v,int n)
+       d = pointer to array of diagonal elements
+           The computation loads this array with
+           singular values.
+       e = pointer to array with superdiagonal elements
+           in the first n-1 positions. These values are altered.
+       b = pointer to array of system vector b
+           This vector is transformed by the QR rotations.
+       v = pointer to orthogonal transformation matrix V
+           This matrix is transformed by the QR rotations.
+       n = dimension (dim(d)=dim(e)=n,dim(v)=n*n,dim(b)>=n)
+      return value: N = number of QR iterations required
+
+
+-------------------------------------------------------------------------------
+
+ Polynomial Least Squares:
+-------------------------------------------------------------------------------
+
+
+     Polynomial fits are one of the most common forms of least squares
+ analysis. A comprehensive set of functions, based on developing a set
+ of polynomials orthogonal on the set of measurements, is provided to
+ support this form of analysis.
+
+
+     The orthogonal polynomials op(x) satisfy the orthogonality relation
+     Sum(i=0 to n-1){opj(x[i])*opk(x[i])} = h[k] if j=k and 0 otherwise.
+
+     Orthogonal polynomials are computed using the recurrence
+
+          op{k+1}(x) = (x - f[k]*)opk(x)-(h[k]/h[k-1])*op{k-1}(x) ,
+
+     where op{-1} = 0 and op0 =1. The coefficients are determined by
+
+          h[k] = Sum(i=0 to n-1){(opk(x[i]))^2} and
+
+          f[k] = Sum(i=0 to n-1){x[i]*opk(x[i])^2} .
+
+     The fit residuals e[i] are given by
+
+          e[i] = y[i] - Sum(i=0 to m-1) c[k]*opk(x[i])
+
+     for a fit of degree n in x. The sum of squared residuals
+
+          ssq = Sum(i=0 to n-1) e[i]^2
+
+     provides a measure of the fit, and can be used to estimate measurement
+     variance in cases where this statistic makes sense. The variance matrix
+     for the coefficients c[k] of the least squares polynomials takes the
+     form
+
+          var(c[j]) = ssq/(h[j]*(n-m-1))
+
+     for an orthogonal polynomial fit of degree m.
+
+     ------------------------------------------------------------------------
+
+plsq
+
+     Compute a polynomial least squares fits to data, using
+     polynomials orthogonal on the x-values.
+
+     plsq(double *x,double *y,int n,Opol *cf,double *ssq,int m)
+       x = pointer to array of x-values
+       y = pointer to array of measurements converted to
+           array of fit residuals by the computation
+       n = number of measurements (dim(x)=dim(y)= n)
+       cf = pointer to array of structures specifying the
+            orthogonal polynomials
+       ssq = pointer to array of squared residuals for
+             fits of order 1 to m
+       m = maximum order of fit desired (dim(cf)=dim(ssq)=m)
+           (Fits with polynomials of degree 0 to m-1 are
+            computed by this function.)
+
+
+     The structure Opol is defined in the header file ccmath.h by the
+     following line.
+
+     typedef struct orpol {double cf,hs,df;} Opol;
+
+     This structure holds the coefficient of the polynomial in the
+     least squares fit, and the recurrence coefficients needed to
+     generate the polynomial.
+
+          cf[k].cf = c[k], cf[k].hs = h[k], and cf[k].df = f[k] .
+
+     The least squares fit for a polynomial of degree m is given by
+     the expansion
+
+          fit_n(x) = Sum(k=0 to n){c[k]*opk(x)}
+
+          for n = 0,1, - - ,m-1 .
+
+     --------------------------------------------------------------------
+
+pplsq
+
+     Compute a least squares fit to a polynomial of degree m-1.
+
+     double pplsq(double *x,double *y,int n,double *bc,int m)
+       x = pointer to array of x-values of measurements
+       y = pointer to array of measurements converted to
+           array of fit residuals by the computation
+       n = number of measurements (dim(x)=dim(y)= n)
+       bc = pointer to vector of polynomial coefficients
+       m = order of fit (dim(bc)= m)
+           (The fit polynomial is of degree m-1 in x.)
+
+
+     This function is used in cases where the fit is to be made
+     with a polynomial of known degree, and the output is to
+     be expressed in terms of coefficients of powers of x.
+
+          fit(x) = Sum(i=0 to m-1) bc[i]*x^i .
+
+     ---------------------------------------------------------------
+
+evpsq
+
+     Evaluate a computed least squares polynomial fit function.
+
+     double evpsq(double x,Opol *c,int m)
+       x = argument where fit function is to be evaluated
+       c = array of orthogonal polynomial coefficient structures
+       m = order of fit (dim(c)=m)
+      return value: y = fit(x)
+
+
+     The fit functions generated by a call of 'plsq' are evaluated
+     by this function, with
+
+          fit(x) = Sum(i=0 to m-1) c[k]*opk(x) .
+
+     ---------------------------------------------------------------
+
+evpsqv
+
+     Evaluate a least squares polynomial fit function and
+     compute the standard deviation of the fit.
+
+     double evpsqv(double x,Opol *c,int m,double *v,double sig)
+       x = argument where fit function is to be evaluated
+       c = array of orthogonal polynomial coefficient structures
+       sig = estimate of sigma squared for the measurements
+       v = pointer to store for rms sigma of returned value
+           ( y = fit(x) , v )
+       m = order of fit (dim(c)=m)
+      return value: y = fit(x)
+
+
+     The input sig is an estimate of the variance of individual
+     measurements, based on the sum of squared fit residuals.
+
+          sig = ssq(m)/(n-m-1) .
+
+     The accuracy of the fit at a point is expressed as
+
+          y(x) = fit(x) +- *v , with *v the one sigma rms variance.
+
+     ----------------------------------------------------------------
+
+psqcf
+
+     Compute the polynomial coefficient vector for a fit
+     by a polynomial of degree m-1.
+
+     psqcf(double *b,Opol *c,int m)
+       b = pointer to array for polynomial coefficient output
+       c = pointer to array of structures specifying the
+           polynomials orthogonal on x-values
+       m = order of fit (dim(cf)=dim(b)=m)
+
+     This function expresses a fit obtained with 'plsq' in terms
+     of the coefficients of powers of x, with
+
+          fit[m-1](x) = Sum(i=0 to m-1) b[i]*x^i .
+
+     ----------------------------------------------------------------
+
+psqvar
+
+     Compute the variance matrix of the polynomial coefficients.
+
+     psqvar(double *v,double sig,Opol *c,int m)
+       v = pointer to array for variance matrix output 
+       sig = estimate of sigma squared for the measurements
+       c = pointer to array of structures specifying the
+           orthogonal polynomials
+       m = order of fit (dim(c)= m, dim(v)=m*m)
+
+
+     This function extracts the variance matrix of the coefficients
+     of powers of x from a least squares fit computed by 'plsq'.
+     The input sig is an estimated measurement variance
+
+          sig = ssq(m)/(n-m-1)  and the variance matrix  V = b*b~ ,
+
+     where the components of the the vector b are computed by 'psqcf'.
+
+-------------------------------------------------------------------------------
+
+ Nonlinear Least Squares:
+-------------------------------------------------------------------------------
+
+
+     The basic problem encountered in nonlinear least squares is to minimize
+
+          ssq = Sum(i=0 to n-1){y[i] - f(x[i],b[1] - b[m])}^2 ,
+
+ where the fit function f is not linear in the parameters b[k]. The range of
+ possible nonlinear functions is so large that a completely general solution
+ to this problem is unlikely. Nevertheless, experience with a combination
+ of sequential and batch estimation steps indicates that this approach is
+ suitable and efficient for a wide range of nonlinear estimation problems.
+
+     The sequential method is one that was originally applied by Gauss to
+ the reduction of astronomical orbit data. Each measurement in a sequence is
+ used to update the current parameter estimate. These updates employ a
+ linearization of the nonlinear system about the current parameter estimate
+ and an error term of the form
+
+          e[i] = y[i] - f(x[i],B'[i-1]) ,
+
+ where B'[i-1] is the parameter vector estimated at the previous update.
+ This algorithm is very effective in searching parameter space for a
+ parameter vector near the minimum of ssq.
+
+-------------------------------------------------------------------------------
+
+seqlsq
+
+     Perform a sequential iteration of a least square fit to the function
+     y=(*func)(x,par).
+
+     double seqlsq(double x[],double y[],int n,double par[],double var[],\
+                   int m,double de,double (*func)(),int kf)
+        x = n dimensional array of independent variables
+        y = n dimensional array of dependent variables
+        n = number of points fitted
+        m = dimension of parameter vector
+        par = m-vector of fit function parameters
+               (The input values represent an initial estimate.)
+        var = array containing the m by m matrix proportional to the
+               parameter variance matrix (constant of proportionality
+               = ssq/(n-m) )
+        de = interval for derivative computation (dfunc/dpar)
+        func = pointer to the fit function (y=(*func)(x,par) )
+        kf = control flag, with:
+               kf=0 -> initialize var as a unit matrix
+               kf>0 -> accept input values of var matrix
+      return value: ssq = sum of squares at fit points
+
+
+     This function can be used, in conjunction with the Gauss-Newton
+     estimator gnlsq, to estimate nonlinear least square fits. 
+     Sequential iterations are effective in the initial search stage.
+
+     The parameter vector estimate is updated for each measurement y[i]
+     in sequence,
+
+           ssq = Sum(i=0 to n-1) (y[i] - f(x[i],par))^2
+
+     should be interpreted with this sequential variation of par in mind.
+
+     Iterations of this function are used to search parameter space.
+     Normally the output of an iteration is employed as the input to
+     the next estimation stage. Several other options are outlined
+     below. Termination of a sequence of sequential estimation passes
+     should be based on the statistical significance of the decrease in
+     ssq in successive passes.
+
+     Input options:
+     1) The use of a unit matrix for initializing var is usually
+        acceptable.
+     2) Parameter scale differences in components of par can be
+        addressed by using an initial pass through the Gauss_Newton
+        estimator to obtain an input var.
+     3) The output matrix var can be multiplied by a scale factor,
+        with s >1 between iterations. This is used to avoid a search
+        with variance too 'stiff' to support significant changes
+        in the parameter vector.
+
+     Numerical derivatives of the fit function with respect to the
+     parameters are used. The interval used to compute these derivatives
+     should be selected to ensure that
+
+           (f(x,par'')-f(x,par'))/de , with de = par''[i]-par'[i]
+
+     yields an effective approximation to the partial derivative. This
+     also applies to the function 'gnlsq'.
+
+     ----------------------------------------------------------------------
+
+     The Gauss-Newton least squares estimator employs a batch process to
+ estimate a parameter vector, with the linearization performed at the
+ input point for each measurement. This estimator converges quite well when
+ the starting point in parameter space is fairly close to a minimum. Thus,
+ it can be used effectively in the final iterations of a nonlinear fit.
+ The output of the previous sequential or batch pass is used as input to
+ 'gnlsq'.
+
+
+gnlsq
+
+     Perform a Gauss-Newton iteration of a least square fit to the
+     function y=(*func)(x,par).
+
+     double gnlsq(double x[],double y[],int n,double par[],double var[],\
+                  int m,double de,double (*func)())
+        x = n dimensional array of independent variables
+        y = n dimensional array of dependent variables
+        n = number of points fitted
+        m = dimension of parameter vector
+        par = m-vector of fit function parameters
+               (The input values represent an initial estimate.)
+        var = array containing the m by m matrix proportional to the
+               parameter variance matrix (constant of proportionality
+               = ssq/(n-m) )
+        de = interval for derivative computation (dfunc/dpar)
+        func = pointer to the fit function (y=(*func)(x,par) )
+      return value: ssq = sum of squares at fit points
+                          ssq > 0. -> normal exit
+                          ssq = -1.0 -> singular matrix var detected
+                                          (ie. an input error)
+
+
+     A single iteration of this function can be used for well-posed
+     linear least square estimates, where it is equivalent to the
+     use of the normal equation method. In nonlinear problems it is
+     most effective in the final iterations, however, an initial
+     iteration is sometimes used to determine the relative scaling of
+     the variance matrix.
+
+     The sum of squared residuals is given by
+
+           ssq = Sum(i=0 to n-1) (y[i] - f(x[i],par))^2 ,
+
+     where the initial input parameter vector par is used at each
+     step. The estimated measurement variance, based on this sum, is
+
+          sigsq = ssq/(n-m).
+
+     This value should be used to scale the final variance matrix output
+     var when the statistical uncertainty in parameter estimates is of
+     interest.
+
+     Termination of a sequence of Gauss-Newton iterations is best
+     based on the magnitude of changes in the estimated parameter
+     vector from pass to pass.
+
+     ----------------------------------------------------------------
+
+fitval
+
+     Evaluate the value and rms sigma of a general least square fit at x.
+
+     double fitval(double x,double *s,double *par,double (*fun)(),\
+                   double *v,int n)
+       x = value of independent variable
+       s = pointer to store for computed fit's rms sigma at x
+       par = pointer to estimated fit parameter vector
+       fun = pointer to fit function (y=(*fun)(x,par))
+       v = pointer to estimated fit variance matrix
+       n = dimension of parameter vector
+      return value: f(x,par) = value of the estimated fit function at x
+
+
+     The variance matrix input to fitval must be scaled by the
+     estimated s2 of the fit so that a valid rms sigma can
+     returned in *s.
+
+          y = f(x,par) +- *s .
+
+
+setfval
+
+     Allocate/free the storage required by fitval.
+
+     void setfval(int i,int n)
+     int i,n;
+       i = control flag, with i=0 -> allocate internal storage
+                              i=1 -> free storage
+       n = dimension of fit parameter vector
+
+
+     The function 'setfval' must be called with i=0 before any
+     calls to 'fitval' are made.

@@ -1,0 +1,92 @@
+version 2.2.1 -- 11/8/01
+
+     Alter the QR rotation routines supporting singular value
+     decomposition qrbdv.c, qrbdu1.c, and qrbdi.c to avoid a
+     rare numerical instability.
+
+     Modify the installation script makelibs.sh to ensure that
+     the new QR rotation code is not compiled with optimization.
+     The QR fix does not survive the GNU compiler's optimization.
+
+     Alter include in sany.c to read: #include "../ccmath.h".
+
+
+version 2.2.0 -- 12/13/00
+
+     Convert all function definitions to the modern ASCII style.
+
+     Revise test programs to support automatic checking of their
+     output against the sample output appended as a comment to
+     the test code source. Modifications were made to most of
+     the test code to support this.
+
+     Supply shell code to permit the automatic checks of standard
+     test outputs.
+
+     Corect the manual entry for the values returned by the
+     solv function (revision in C-01).
+
+
+version 2.1.2 -- 10/05/00
+
+     Modify installation scripts makelibs.sh and install.sh
+     to eliminate an undefined linker option.
+
+     Correct structure initializations in ccmath.h. (missing
+     braces)
+
+     Use <stdlib.h> to define all references to allocation
+     functions calloc() and malloc(). This header is now
+     included by ccmath.h.
+
+     Correct failures to free allocated storage in some eigenvalue
+     routines.
+
+     Change declarations of unsigned long to unsigned int
+     to correct problems on the DEC Alpha where unsigned long
+     has a length of 64 bits.
+
+     Revise ccmath.h and manual to reflect the altered
+     declarations of unsigned quantities. (Revisions in
+     C-07, C-10, and C-14.)
+
+     Fixed a bug in the singular value distribution code
+     that could lead to an attempt to operate with NANs. 
+
+
+version 2.1.1 -- 5/19/00
+
+     Revise hash storage programs to allow use of multiple
+     hash schemes in a program. ( Programs that use the
+     functions hashins, hashdel, hfind, and hval must be
+     revised to use this new form.)
+
+     Revised manual chapter C10-sort to reflect hash function
+     changes.
+
+     Minor correction in manual chapter C01-matrix.
+
+     Clean up anachronistic K&R type declarations of calloc
+     and malloc. (stdlib.h is now used)
+
+     Alter index incrementation code in time series functions
+     that resulted in warnings from DEC ALPHA compiler.
+
+
+version 2.1.0 -- 5/1/00
+
+     Add section containing benchmark test code and output.
+     ('benchmk' directory )
+
+     Specify use of '/bin/sh' in installation scripts
+
+     Change license policy to LPGL the GNU library public license.
+     
+
+
+version 2.0.1 --  2/27/00 
+
+     Correct spelling error in script 'install.sh'.
+
+     3/19/00
+     Correct function name in '~/simu/supp/lranb.c' :  "lrana() -> lranb()".

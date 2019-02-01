@@ -1,0 +1,453 @@
+                              Chapter 10
+
+                          SORTS and SEARCHES
+
+                               Summary
+
+               This library segment contains a number of sort
+               functions, and functions that implement efficient
+               search capabilities using trees and scatter
+               storage (hashing). The specific areas covered
+               are:
+
+                          o Sort Functions
+                          o Binary Trees
+                          o Balanced (AVL) Binary Trees
+                          o Hashing
+
+               Search functions implement the standard operations
+               of node insertion, node deletion, and a search for
+               a specified node.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+  o Sort Functions:
+
+     Each of the sorting functions is a general purpose algorithm that
+ operates on an array or list of pointers to the elements to be sorted, and
+ accepts a user specified comparison function.
+
+    msort  -------- execute a merged list sort.
+    qsrt   -------- use the "quick-sort" algorithm.
+    hsort  -------- use the "heap-sort" algorithm.
+    ssort  -------- perform a Shell-sort.
+
+     Both ordinary binary trees and the balanced (AVL) tree are supported by
+ library functions.
+
+
+  o Binary Tree Functions:
+
+    btins  -------- insert a node in a Binary tree.
+    btdel  -------- delete a specified node from a Binary tree.
+    tsearch  ------ search a tree for a node with a specified key.
+    tsort  -------- sort the tree's nodes in ascending order.
+    prtree  ------- print a map of the tree's node structure.
+
+
+  o Balanced (AVL) Trees:
+
+    batins  ------- insert a node in a balanced tree.
+    batdel  ------- delete a specified node from a balanced tree.
+    btsearch  ----- search a balanced tree for a node with a
+                    specified key.
+    btsort  ------- sort the nodes of a balanced tree in ascending
+                    order.
+    prbtree  ------ print a node map of a balanced tree.
+
+
+  o Hashing:
+
+    hashins  ------ insert a node into a hashed (scatter storage)
+                    structure.
+    hashdel  ------ delete a specified node from the hashed structure.
+    hfind  -------- find the hashed node with a specified key.
+    hval  --------- perform a simple hash array address computation.
+
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The sort techniques implemented include a Shell sort and a heap sort that
+ provide efficient and simple approaches to the internal sorting problem. In
+ addition, two high efficiency recursive algorithms, quicksort and merge sort,
+ are provided. The Shell, heap, and quicksort algorithms all operate on an
+ array of pointers to the actual list to be sorted, while merge sort sorts a
+ linked list. Use of the merge sort is advised in applications where the
+ linked list overhead is acceptable.
+
+     All the sort and search functions accept a user defined function for
+ key comparison. The convention adopted in interpreting the values returned
+ by this comparison function are those adopted in the standard C library:
+
+                    1 -> first key > second key;
+                    0 -> first key = second key;   and
+                   -1 -> first key < second key.
+
+     The binary tree data structure supports high efficiency searches. The use
+ of balanced trees will ensure a specified bound on the number of nodes that
+ must be traversed in any search. Therefore, its use is preferred over the
+ simple binary tree unless storage limits prohibit the balance flag required
+ in each node of the AVL data structure. Each tree function package includes
+ functions to insert a node, delete a node, find the node corresponding to a
+ specified key, and sort the nodes in ascending order of keys.
+
+     The hash storage utilities also provide an efficient data structure for
+ rapid searches. Collision is handled by using linked lists at each hash node.
+ This approach involves a lower overhead than the tree based structures at the
+ expense of somewhat less efficient storage utilization when nodes are sparse.
+ Considerable work has been done on hash key generation, and the user may wish
+ to replace the simple hval function supplied in the library with another
+ tailored to his application.
+
+-------------------------------------------------------------------------------
+                        FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     Sort Functions:
+-------------------------------------------------------------------------------
+
+ssort
+
+     Conduct a Shell sort of the array v[] with comparison function comp.
+
+     void ssort(void *v,int n,int (*comp)())
+       v = array of pointers to sort input
+            (pointers index sorted array at exit)
+       n = dimension of input array
+       comp = pointer to comparison function (see numcmp for example)
+
+     -----------------------------------------------------------------
+
+hsort
+
+     Perform a heap sort with comparison function comp on the array v[].
+
+     void hsort(void *v,int n,int (*comp)())
+       v = array of pointers to sort input
+            (pointers index sorted array at exit)
+       n = dimension of input array
+       comp = pointer to comparison function (see numcmp for example)
+
+     -------------------------------------------------------------------
+
+qsrt
+
+     Quicksort algorithm for sorting array v[] with comparison function comp.
+
+     void qsrt(void *v,int i,int j,int (*comp)())
+       i = start index of array (normally i=0 at top level)
+       j = maximum index of array (= dimension-1)
+       v = array of pointers to sort array
+            (pointers index sorted array at exit)
+       comp = pointer to comparison function (see numcmp)
+
+
+          The quicksort function is recursive. It may require an increase
+          in stack size when a large array is sorted.
+
+     ---------------------------------------------------------------------
+
+msort
+
+     Merge sort a linked list using comparison function comp.
+
+     struct llst *msort(struct llst *st,int dim,int (*comp)())
+       st = pointer to head of linked list
+       dim = length of list
+       comp = pointer to comparison function (see numcmp)
+      return value: ps = pointer to head of sorted list
+      
+         The msort function generally yields the fastest internal
+         sorts. The function is recursive (see the note following
+         qsrt above). The linked list structure, used in msort,
+         is defined in the header files merge.h (listed below)
+         and ccmath.h. The list is terminated by a NULL pointer.
+
+     merge.h
+
+          #ifndef NULL
+          #define NULL 0L
+          #endif
+          struct llst {char *pls; struct llst *pt;};
+
+     -------------------------------------------------------------
+
+numcmp
+
+     Numcmp contains numeric comparison functions for double or float and 
+     integer variables. (It can easily be extended to other types.)
+     The return convention is identical to that used by the standard
+     library function 'strcmp'.
+     ----------------------------------------------------------------
+
+dubcmp
+
+     Compare double or float values.
+
+     int dubcmp(double *x,double *y)
+       x = pointer to first value
+       y = pointer to second value
+     return values: 0 -> *x = *y
+                    1 -> *x > *y
+                   -1 -> *x < *y
+
+     -------------------------------------
+
+intcmp
+
+     Compare signed integer variables.
+
+     int intcmp(int *x,int *y)
+       x = pointer to first value
+       y = pointer to second value
+     return values: 0 -> *x = *y
+                    1 -> *x > *y
+                   -1 -> *x < *y
+
+unicmp
+
+     Compare unsigned integer values.
+
+     int unicmp(unsigned *x,unsigned *y)
+       x = pointer to first value
+       y = pointer to second value
+     return values: 0 -> *x = *y
+                    1 -> *x > *y
+                   -1 -> *x < *y
+
+-------------------------------------------------------------------------------
+
+     Search Functions:
+-------------------------------------------------------------------------------
+
+     Trees
+
+     The header file tree.h, whose contents are reproduced in ccmath.h, is
+ used by all the binary tree functions to define the basic node data
+ structure. A signal parameter BAL is used to distinguish balanced trees from
+ ordinary binary trees. If BAL is defined, a balanced tree is assumed.
+ Otherwise the tree structure is a simple binary tree. The header node of a
+ tree is assumed to contain a dummy key that is lexically less than any key
+ value in the tree. The search code assumes that this header node is present.
+
+     tree.h
+
+       #ifndef NULL
+       #define NULL 0L
+       #endif
+       #ifdef BAL
+       struct tnode {char *key,*rec; int bal; struct tnode *pr,*pl;};
+       #else
+       struct tnode {char *key,*rec; struct tnode *pr,*pl;};
+       #endif
+     --------------------------------------------------------------------
+
+btins
+
+     Insert a node in a binary tree structure.
+
+     struct tnode *btins(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: p = pointer to matching tree node
+                        (may be a new node allocated by the function)
+
+     ----------------------------------------------------------------
+
+btdel
+
+     Delete a node with a specified key from a binary tree structure.
+
+     int btdel(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: status flag, with
+                     0 -> no matching node in tree
+                     1 -> node found and deleted
+
+     ------------------------------------------------------
+
+tsearch
+
+     Search a binary tree for a node with the specified key.
+        
+     struct tnode *tsearch(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: p = pointer to matching node of tree
+                         p = NULL -> no such node
+
+     ---------------------------------------------------------------
+
+tsort
+
+     Sort a binary tree's nodes in ascending key order.
+
+     void tsort(struct tnode *hd,struct tnode **ar)
+       hd = pointer to the header node of the tree
+       ar = pointer to array loaded with sorted node list
+
+     ----------------------------------------------------------
+
+prtree
+
+     Print a map of the node structure of a binary tree segment.
+
+     void prtree(struct tnode *hd,int m)
+       hd = pointer to starting node of tree segment
+       m = depth to which tree structure is to be printed
+            (depth is relative to starting node)
+
+
+          This function is useful for displaying the structure of
+          relatively short tree subsegments in test code.
+
+-------------------------------------------------------------------------------
+
+     Balanced (AVL) Trees:
+-------------------------------------------------------------------------------
+
+     The balanced (AVL) tree functions include a definition of BAL to signal
+ compilation with the proper node structure. The balance flag (int bal) must
+ be included in the structure for balanced trees. Thus,
+
+     #define BAL 1
+
+ must appear before ccmath.h or tree.h is referenced to ensure a correct
+ definition of the tree structure.
+
+-------------------------------------------------------------------------------
+
+batins
+
+     Insert a node with the specified key in a balanced tree.
+
+     struct tnode *batins(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: p = pointer to matching tree node
+                        (may be a new node allocated by the function)
+
+     ----------------------------------------------------------------
+
+batdel
+
+     Delete the node matching the specified tree from a balanced tree.
+
+     int batdel(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: status flag, with
+                     0 -> no matching node in tree
+                     1 -> node found and deleted
+
+     -----------------------------------------------------
+
+btsearch
+
+     Search a balanced tree for the node matching a specified key.
+
+     struct tnode *btsearch(char *kin,struct tnode *hd)
+       kin = pointer to input search key string
+       hd = pointer to head node of tree
+      return value: p = pointer to matching node of tree
+                        p = NULL -> no such node
+
+     -----------------------------------------------------------
+
+btsort
+
+     Sort the nodes of a balanced tree in ascending key order.
+
+     void btsort(struct tnode *hd,struct tnode **ar)
+       hd = pointer to the header node of the tree
+       ar = pointer to array loaded with sorted node list
+
+     -------------------------------------------------------------
+
+prbtree
+
+     Print the node map of a balanced tree segment.
+
+     void prbtree(struct tnode *hd,int m)
+       hd = pointer to starting node of tree segment
+       m = depth to which tree structure is to be printed
+            (depth is relative to starting node)
+
+
+          This function is useful for displaying the structure of
+          relatively short tree subsegments.
+
+
+-------------------------------------------------------------------------------
+
+     Scatter Storage (Hashing):
+-------------------------------------------------------------------------------
+
+     The hash table structure used by scatter storage functions is defined
+ in the header files hash.h listed below, and in ccmath.h.
+
+     hash.h
+
+          #ifndef NULL
+          #define NULL 0L
+          #endif
+          struct tabl {char *key,*val; struct tabl *pt;};
+
+ Either hash.h or ccmath.h must be included when the hash functions are used.
+
+-------------------------------------------------------------------------------
+
+hashins
+
+     Insert a node into a scatter storage (hashed) structure.
+
+     struct tabl *hashins(char *kin,struct tabl *ha[],int mh)
+       kin = pointer to key string of insert
+       ha = hash array of pointers to struct tabl nodes
+       mh = dimension of hash array ha
+      return value: p = pointer to the inserted node
+                        (storage for node is allocated by the function)
+
+     --------------------------------------------------------------
+
+hashdel
+
+     Delete a node from a scatter storage structure.
+
+     int hashdel(char *kin,struct tabl *ha[],int mh)
+       kin = pointer to key string of insert
+       ha = hash array of pointers to struct tabl nodes
+       mh = dimension of hash array ha
+      return value: status flag, with
+                     0 -> no such node
+                     1 -> node found and deleted
+
+     --------------------------------------------------------
+
+hfind
+
+     Find the hashed node corresponding to a specified key.
+
+     struct tabl *hfind(char *kin,struct tabl *ha[],int mh)
+       kin = pointer to key string to be located
+       ha = hash array of pointers to struct tabl nodes
+       mh = dimension of hash array ha
+      return value: p = pointer to record with key (kin)
+                        p=NULL -> no such record
+
+     --------------------------------------------------------------
+
+hval
+
+     Compute the hash array address of a key string.
+
+     int hval(char *key,int mh)
+       char *key;
+       key = pointer to input key string
+       mh = dimension of hash array
+      return value: k = harray address of this key (0 <= k < mh)

@@ -1,0 +1,170 @@
+
+                       Timing Data for a Pentium II
+                              Running Linux
+
+                              D. A.Atkinson
+
+
+     The execution times of a set of computational programs run on a modern
+ Pentium II system under the Linux operating system are tabulated below. The
+ computer employed a 233 MHz Pentium II CPU with 512 Kbytes of integrated L2
+ cache memory. The main RAM memory is 128 Mbytes connected to the CPU by a PCI
+ bus.
+
+     The Linux (2.0.38) operating system was used, and the test code was
+ compiled using the GNU C-compiler (version 2.7.2). The optimization switch
+ -O3 was used in all compilations. All the computations timed use double
+ precision arithmetic.
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     1. The Linpac benchmark: A large linear system is solved.
+
+        dimension        time (sec.)        rate (Mflops)
+
+           300             0.277               65.6  (*)
+           600             3.83                36.8
+           900            13.08                37.3
+          1200            30.92                37.4
+          1500            59.33                37.9
+          1800           103.13                37.8
+
+          (*) This benchmark used 'timslpac' with 10 iterations.
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     2. Matrix multiplication: The product of two real square matrices is
+        computed.
+
+ -----------------------------------------------------------------------------
+
+       dimension          time (sec.)         rate (Mflops)
+
+          250                0.41                 76.2
+          500                6.35                 39.4
+          750               21.27                 39.7
+         1000               50.47                 39.6
+         1250              104.10                 37.5
+         1500              182.64                 37.0
+     
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     3. Matrix inverse: The inverse of a real square matrix is computed.
+
+ -----------------------------------------------------------------------------
+
+                    dimension     time (sec.)
+
+                       300           1.03
+                       600          17.68
+                       900          62.61
+                      1200         149.23
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     4. Eigen system problems:
+ -----------------------------------------------------------------------------
+
+       a. real symmetric matrix
+
+                     eigenvalues           egenvalues & vectors
+       dimension     time (sec.)                time (sec.)
+
+          200           0.23                       1.21
+          400           2.06                      13.00
+          600           8.05                      46.17
+          800          21.17                     111.31
+
+       b. hermitian matrix
+
+                     eigenvalues           egenvalues & vectors
+       dimension     time(sec.)                 time (sec.)
+
+          200           0.76                       3.56
+          400           6.86                      30.85
+          600          25.24                     109.97
+          800          61.48                     266.03
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     5. Fourier transforms:
+
+        a.  Compute the transform of a complex series using a radix-2
+            based FFT.
+
+ -----------------------------------------------------------------------------
+
+         N      (length=2^N)      time (sec.)     rate (Mflops) (*) 
+
+        16         65536            0.22            66.7
+        18        262144            1.05            62.9
+        20       1048576            4.68            62.7
+        22       4194304           20.45            63.1
+
+     (*) Rate computation based on operation count = 14*N*(2^N)
+ -----------------------------------------------------------------------------
+
+        b.  Compute a general radix Fast Fourier Transform.
+ -----------------------------------------------------------------------------
+
+                 N                      time (sec.)
+
+               50000                       0.48
+              200000                       2.56
+             1000000                      14.33
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     6. Sorting: Sort a series of double precision floating point numbers.
+
+ -----------------------------------------------------------------------------
+
+      series length   merge sort   quick sort   heap sort   shell sort
+                        (sec.)       (sec.)       (sec.)      (sec.)
+
+         100,000         0.47         0.52         0.73       1.01
+         500,000         3.22         3.51         5.27       7.70
+       1,00,0000         7.30         7.49        12.14      19.09
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     7. Function evaluation: Compute Bessel functions of the first kind,
+        Jn(x), on a grid in order n and argument x.
+
+ -----------------------------------------------------------------------------
+
+        evaluations         time (sec.)        dt per evaluation
+
+         250,000                2.06               8.24 usec
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     8. Numerical integration: Compute complete elliptic integrals of the
+        first kind at evenly spaced values of the parameter k*k.
+
+ -----------------------------------------------------------------------------
+
+        evaluations         time (sec.)        dt per evaluation
+
+          50,000               2.24                 44.8 usec
+
+ -----------------------------------------------------------------------------
+ -----------------------------------------------------------------------------
+
+     9. Random Normal Generation: Generate pseudorandom normal deviates.
+
+ -----------------------------------------------------------------------------
+
+        number generated      time (sec.)     dt per evaluation
+
+          1,000,000              0.85            0.85 usec
+
+ -----------------------------------------------------------------------------

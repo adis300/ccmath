@@ -1,0 +1,188 @@
+                              Chapter 14
+
+                              UTILITIES
+
+                               Summary
+
+               The utility operation functions support access to
+               individual bits in variables, and the display of
+               bit patterns for each of the standard C data
+               types.  An efficient integer power function,
+               based on bit access, is included.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+     The utility functions implement some useful capabilities involving bit
+ operations on binary data.
+
+    bit  -------- set (bset), test (bget), and count (bcnt) the
+                  bits in a (16-bit) word.
+    lbit  ------- set (lbset), test (lbget), and count (lbcnt) the
+                  bits in a (32-bit) long word.
+    bpat  ------- display the bit pattern of a byte (bitpc 8-bits),
+                  word (bitpn 16-bits), long word (bitpl 32-bits),
+                  or double (bitpd 64-bits).
+    bpatx  ------ display the bit pattern of an extended precision
+                  number used in the extended precision segment of the
+                  Numerical Analysis Library.
+    pwr  -------- efficiently compute an integer power of a double
+                  precision number.
+
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The utility functions assume two's complement integers.  This is
+ currently valid for most UNIX work stations and personal computers.  Bit
+ display functions are often useful in the diagnosis of floating point
+ arithmetic anomalies. They may be used in conjunction with the extended
+ precision arithmetic of the CCM library to investigate the impact of
+ truncated precision arithmetic on computations. IEEE 754 floating point
+ formats used by a standard floating point processor and emulation software
+ is assumed for the PC version of this library.
+
+-------------------------------------------------------------------------------
+                           FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     Operate on Bits:
+-------------------------------------------------------------------------------
+
+bit and lbit
+
+     Set, test, and count bits in a specified word (long word).
+
+bset
+
+     unsigned short bset(unsigned short x,unsigned short n)
+       x = input word
+       n = bit to be set (rightmost = 0)
+      return value: x' = word with bit n set
+
+     -----------------------------------------------------------
+
+lbset
+
+     unsigned int lbset(unsigned int x,int n)
+       x = input long word
+       n = bit to be tested (rightmost = 0)
+      return value: x' = long word with bit n set
+
+     ----------------------------------------------------------
+
+bget
+
+     int bget(unsigned short x,unsigned short n)
+       x = input word
+       n = bit to be tested (rightmost = 0)
+      return value: f = test flag, with
+                        0 -> bit n not set (=0)
+                        1 -> bit n set (=1)
+
+     -----------------------------------------------------------
+
+lbget
+
+     int lbget(unsigned int x,int n)
+       x = input long word
+       n = bit to be tested (rightmost = 0)
+      return value: f = test flag, with
+                        0 > bit n not set (=0)
+                        1 > bit n set (=1)
+
+     -----------------------------------------------------
+
+bcnt
+
+     int bcnt(unsigned short x)
+       x = input word
+      return value: m = count of bits set in x
+
+     ------------------------------------------------
+
+lbcnt
+
+     int lbcnt(unsigned int x)
+       x = input long word
+      return value: m = count of bits set in x
+
+
+-------------------------------------------------------------------------------
+
+     Display Bits of Operand:
+-------------------------------------------------------------------------------
+
+     Print the bit pattern of the operand, starting at the current cursor
+     location.
+
+bitpc
+
+     void bitpc(unsigned char x)
+       x = input character (length= one byte)
+
+     ------------------------------------------------
+
+bitpn
+
+     void bitpn(unsigned short x)
+       x = input short integer (length= two bytes)
+
+     -------------------------------------------------
+
+bitpl
+
+     void bitpl(unsigned int x)
+       x = input integer (length= four bytes)
+
+     --------------------------------------------------
+
+bitpf
+
+     void bitpf(float x)
+       x = input float
+            ( 1 sign bit, 8 exponent bits, 23 bit mantissa )
+
+     --------------------------------------------------
+
+bitpd
+
+     void bitpd(double x)
+       x = input double
+            ( 1 sign bit, 11 exponent bits, 52 bit mantissa )
+
+     ---------------------------------------------------------------
+
+          The exponent field in floats and doubles is separated from
+          the mantissa by the '^' character.
+
+-------------------------------------------------------------------------------
+
+     Extended Precision Patterns:
+-------------------------------------------------------------------------------
+
+     The header file ccmath.h or xper.h must be included when this
+     function is used.
+
+bpatx
+
+     void bpatx(struct xpr x)
+       x = structure containing extended precision real number
+           ( 1 sign bit, 15 exponent bits, 112 bit mantissa )
+
+
+-------------------------------------------------------------------------------
+
+     Integer Power Function:
+-------------------------------------------------------------------------------
+
+pwr
+
+     Compute an integral power of a double precision number.
+
+     double pwr(double y,int n)
+       y = input number
+       n = power desired
+      return value: z = y^n

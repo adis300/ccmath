@@ -1,0 +1,43 @@
+Integer generators
+
+lran1:
+ 10000000 evaluations in 0.730 sec.
+  7.300e-02 microsec per evaluation
+
+lrand:
+ 10000000 evaluations in 1.020 sec.
+  1.020e-01 microsec per evaluation
+
+Integer generators with range 0 to N-1
+
+bran:
+ 10000000 evaluations in 1.030 sec.
+  1.030e-01 microsec per evaluation
+
+bran2:
+ 10000000 evaluations in 1.640 sec.
+  1.640e-01 microsec per evaluation
+
+Uniform Random generators
+
+unfl:
+ 10000000 evaluations in 1.690 sec.
+  1.690e-01 microsec per evaluation
+
+unfl2:
+ 10000000 evaluations in 2.360 sec.
+  2.360e-01 microsec per evaluation
+
+Standard Normal generators
+
+nrml:
+ 10000000 evaluations in 8.510 sec.
+  8.510e-01 microsec per evaluation
+
+norm:
+ 10000000 evaluations in 8.670 sec.
+  8.670e-01 microsec per evaluation
+
+norm2:
+ 10000000 evaluations in 10.020 sec.
+  1.002e+00 microsec per evaluation

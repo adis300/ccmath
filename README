@@ -1,14 +1,3 @@
-# ccmath
-CCMATH is a mathematics library, coded in C, that contains functions for linear algebra, numerical integration, geometry and trigonometry, curve fitting, roots and optimization, Fourier analysis, simulation generation, statistics, special functions, sorts and searches, time series models, complex arithmetic, and high precision computations.CCMATH is a mathematics library, coded in C, that contains functions for linear algebra, numerical integration, geometry and trigonometry, curve fitting, roots and optimization, Fourier analysis, simulation generation, statistics, special functions, sorts and searches, time series models, complex arithmetic, and high precision computations.
-
-This is a mirror of [FreeCode at SourceForge](http://freshmeat.sourceforge.net/projects/ccmath)
-
-[http://freshmeat.sourceforge.net/projects/ccmath](http://freshmeat.sourceforge.net/projects/ccmath)
-
-
-========================== CCMATH README ===============================
-
-
                     CCMATH: A Mathematics Library
                     -----------------------------
                           Version 2.2.0

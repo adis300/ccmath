@@ -1,0 +1,5 @@
+     The C-code and header files in this directory is used
+     in the 'xarm' library segment on a platform with
+     big-endian byte ordering (such as most UNIX workstations).
+     Simply replace the little-endian source files with these
+     source files if your target is a big-endian machine.

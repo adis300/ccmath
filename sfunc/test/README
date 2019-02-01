@@ -1,0 +1,28 @@
+     This directory contains test code for the functions of the 'sfunc'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The following list specifies the command line or prompted inputs
+     required for the standard tests, whose outputs are appended as
+     comments to the test source code.
+
+          tairy    no input
+          tamelp   modulus k (k=0.8)
+          tbes     no input
+          tdrbes   no input
+          tdrspbes  no input
+          tfelp    order k (k=0.8)
+          tg2elp   data/g2elp.dat
+          tg2elps  data/gel2a.dat
+          tgaml    no input
+          tgelp    angle a (a=60.)
+          tgsng    data/gsng.dat
+          tgsng2   data/gel2c.dat
+          tjbes    order max intv =(1.5 12. 0.5) 
+          tnome    no input
+          tpsi     no input
+          trcbes   no input
+          trcspbs  no input
+          tspbes   no input
+          ttheta   prompted input: amp (amp=30.)

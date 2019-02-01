@@ -1,0 +1,11 @@
+#! /usr/bin/perl
+
+# Perl script to extract sample test output appended as a
+# comment to the test source code.
+# syntax:  testex < source.c
+
+$pp = 0;
+while($ln=<>){
+  if($ln =~ m[Test output] ){ $pp=1; }
+  if($pp == 1){ print $ln; }
+}

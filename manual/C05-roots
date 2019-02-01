@@ -1,0 +1,207 @@
+                               Chapter 5
+
+                            ROOTS and OPTIMA
+
+                                Summary
+
+               The functions in this library segment are used to
+               find the roots of nonlinear equations and systems
+               of such equations and to locate local extrema of
+               functions. The areas covered are:
+
+                            o Roots of Equations
+                            o Optimization
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+     Functions in this section of the library are used to extract the roots of
+ nonlinear equations and to find local optima.
+
+ o  Roots of Equations:
+
+    solnl  -------- solve a system of nonlinear equations.
+    solnlx  ------- solve a nonlinear system using an initial
+                    Jacobian.
+    secrt  -------- solve a nonlinear equation using the secant
+                    method.
+    plrt  --------- find the roots (real and complex) of a polynomial.
+    polyc  -------- evaluate a polynomial for complex arguments.
+
+
+ o  Optimization:
+
+    optmiz  ------- perform an unconstrained search for the
+                    optimal parameter vector.
+    optsh  -------- perform a golden section search for optima in
+                    one dimension.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The general root finding functions employ a matrix update algorithm
+ developed by Broyden. The second form offers an enlarged domain of
+ convergence at the expense of requiring the Jacobian matrix of the system at
+ the initial point of the search. The secant method is a simple and standard
+ root extraction technique, provided for convenience. Roots of a polynomial
+ with real coefficients are computed by plrt.
+
+     The nonlinear optimal search algorithm uses the BFGS matrix update
+ method. The robustness of this procedure has been confirmed in numerous tests
+ of optimization techniques. The golden section method is useful and efficient
+ for bounded search in one-dimension.
+
+     Functions for finding the roots of a nonlinear system of equations
+ and for nonlinear optimization are based on efficient quasi-Newton matrix
+ update algorithms. This approach has been shown to combine high execution
+ efficiency (ie. a small number of function evaluations) with a large
+ convergence domain. Simplicity of use was also an important criterion in the
+ selection of the algorithms. The functions implemented do not require user
+ supplied procedures for computation of derivatives. Fortunately, this does
+ not entail a performance sacrifice, since the quasi-Newton procedures exhibit
+ excellent convergence properties when operating with numerical derivatives.
+
+     The algorithms employed for finding roots and optima are iterative.
+ They require an initial estimate of the solution as input. While the
+ implemented algorithms have robust convergence, refinement of these initial
+ estimates is often the most effective way to improve algorithm performance.
+ A few hours spent estimating appropriate scales for variables and refining
+ initial point estimates may save days of agonizing search for a "golden
+ algorithm". Nonlinear analysis is a field so rich that vast bodies of code
+ are no substitute for a thoughtful understanding of the problem at hand.
+
+
+-------------------------------------------------------------------------------
+                          FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+ Roots of Equations:
+-------------------------------------------------------------------------------
+
+solnl
+
+     Solve a system of nonlinear equations.
+
+     int solnl(double *x,double *f,double (*fvec[])(),int n,double test)
+       x = pointer to array containing initial solution estimate,
+            converted to solution vector at exit
+       f = pointer to array containing final values of the system functions
+             { f[k]=(*fvec[k])(x) }
+       fvec = array of pointers to the system functions
+                { (*fvec[k])(x)=0 for k=0,1,2,--,n-1 }
+       n = dimension of system
+       test = convergence threshold (f~*f <test)
+      return: 1 -> normal exit
+              0 -> convergence failure
+
+     -------------------------------------------------------------------
+
+solnx
+
+     Variant of solnl, which permits input of an initial system
+     Jacobian. (Has an enlarged convergence domain.)
+
+     int solnx(double *x,double *f,double (*fvec)(),double *jm,int n, \
+            double *test)
+       x = pointer to array containing initial solution estimate,
+            converted to solution vector at exit
+       f = pointer to array containing final values of the system
+           functions  { f[k]=(*fvec[k])(x) }
+       fvec = array of pointers to the system functions
+                { (*fvec[k])(x)=0 for k=0,1,2,--,n-1 }
+       jm = pointer to array of dimension n*n containing an initial system
+            Jacobian ( row order: JM[i,j] = df[i]/dx[j] )
+       n = dimension of system
+       test = convergence threshold (f~*f <test)
+      return: 1 -> normal exit
+              0 -> convergence failure
+
+     --------------------------------------------------------------------
+
+plrt
+
+     Find the real and complex roots of a polynomial with real
+     coefficients.
+
+     typedef struct complex {double re,im;} Cpx;
+     int plrt(double *cof,int n,Cpx *root,double ra,double rb)
+       cof = pointer to array containing polynomial coefficients, with
+             the leading coefficient cof[n] != 0
+       root = pointer to array of complex structures, containing the
+              polynomial roots at exit (dimension n)
+       n = degree of polynomial
+       ra,rb = initial root estimates, with
+                ( rb>0 -> real = ra, imag = rb and
+                  rb<0 -> real roots ra+rb, ra-rb  )
+      return: 0 -> normal exit
+              m>0 -> convergence failure for roots k<m
+
+
+       The polynomial is given by
+
+          Pn(x) = Sum(i=0 t0 n) cof[i]*x^i  .
+
+     --------------------------------------------------------------------
+
+polyc
+
+     Evaluate a polynomial with real coefficients at complex values
+     of the argument z.
+    
+     typedef struct complex {double re,im;} Cpx;
+     Cpx polyc(Cpx z,double *cof,int n)
+       z = complex structure containing the value of the argument
+       cof = pointer to array containing the polynomial coefficients
+             (dim = n)   [see plrt above]
+       n = degree of polynomial
+      return: p = complex structure containing the value of Pn(z)
+
+     -------------------------------------------------------------------
+
+secrt
+
+     Compute a function root using the secant method.
+
+     double secrt(double (*func)(),double x,double dx,double test)
+       func = pointer to function
+       x = initial estimate of root position
+       dx = displacement to 2nd root estimate x'=x-dx
+       test = convergence threshold ( |x'-x|<test )
+      return: y = root of equation (*func)(y)=0
+
+-------------------------------------------------------------------------------
+
+ Optimization:
+-------------------------------------------------------------------------------
+
+optmiz
+
+     Unconstrained optimal search algorithm of BFGS type.
+
+     int optmiz(double *x,int n,double (*func)(),double de, \
+                double test,int max)
+       func = pointer to function to be minimized
+               ( min. f = (*func)(x) )
+       x = pointer to array of function parameters containing
+           an initial estimate at entry and the solution at exit
+       n = dimension of parameter vector x
+       de = interval used for derivative computation
+       test = convergence threshold ( |f'-f|<test )
+       max = iteration limit for line searches
+      return: m>0 -> success (iteration count)
+              m=0 -> convergence failure
+
+     ---------------------------------------------------------------------
+
+optsh
+
+     Conduct a golden section line search for a function minima.
+
+     double optsch(double (*func)(),double a,double b,double test)
+       func = pointer to function to be minimized
+       a,b = bounds on function argument (a<=x<=b)
+       test = convergence threshold (length of section
+               containing minima <test)
+      return: y = location of minimum of f = (*func)(y)

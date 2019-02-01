@@ -1,0 +1,18 @@
+     This directory contains test code for the functions of the 'geom'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The following list gives the command line inputs for the
+     standard tests.
+
+        teuler
+        thtrgas  data/thtrg.dat
+        thtrgss  data/thtrg.dat
+        tmetpr   data/metp.dat
+        tptrgssa  data/tptrg2.dat
+        tptrgtt  data/tptrg.dat
+        trotax
+        tstrgas  data/tstrg.dat
+        tstrgss  data/tstrg.dat
+        tvops1

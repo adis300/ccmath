@@ -1,0 +1,33 @@
+     This directory contains test code for the functions of the 'cfit'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     List of test inputs:
+
+     tchcof - no inputs
+     tchpade - no inputs is default
+                 num denom : (optional on command line)
+     tchpade2 - no inputs is default
+                  num denom : (optional on command line)
+     tcspl - no input is default
+               cspin.dat : (optional data file input)
+     tcsplp - no input is default
+                a b m: (optional ellipse axes and point count)
+     tevpsq - no inputs
+     tfitval - no inputs
+     tgnlsq - prompted inputs: function parameter estimates
+                               continuation (y/n)
+     tlsqsv - data/lsqsv.dat : (input file)
+     tnlsq - no command line inputs is default
+             output file : (optional on command line)
+             prompted inputs: function parameter estimates
+                              continuation s -> sequential
+                                           f -> batch
+                                           e -> quit
+     tplsq - no inputs
+     tpplsq - no inputs
+     tqrlsq - data/tqr1.dat : (input file)
+     tqrlsq2 - data/tqr2.dat : (input file)
+     tsv2lsq - data/tlsq1.dat : (input file)
+     tsvdlsq - data/tlsq1.dat : (input file)

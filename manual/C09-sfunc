@@ -1,0 +1,672 @@
+                                Chapter 9
+
+                            SPECIAL FUNCTIONS
+
+                                 Summary
+
+               The special functions library segment contains
+               procedures for the evaluation of many of the
+               higher transcendental functions encountered in
+               applications. The functions covered are:
+
+                    o Factorial and Related Functions
+                    o Elliptic Functions and Integrals
+                    o Bessel Functions of General Order
+                    o Spherical Bessel Functions
+                    o Airy Functions
+
+               The evaluation algorithms employ analytic
+               approximations in order to cover the widest
+               possible range of parameters for the functions.
+               The elliptic integral functions employ the Bartky
+               parameterization, which significantly simplifies
+               their use. All the library functions maintain a
+               high standard of accuracy over the full argument
+               range.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents:
+
+     Functions in this library segment compute the values of some frequently
+ used higher transcendental functions.  The accuracy standards quoted below
+ all refer to relative rather than absolute precision.
+
+ o Factorial and Related Functions:
+
+    gaml  -------- evaluate the natural logarithm of the Gamma function.
+    psi  --------- evaluate the Psi-function for integer argument.
+    psih  -------- evaluate the Psi-function for half-integer argument.
+
+     The logarithm of the factorial function is computed to an accuracy of 12
+ or more decimal digits for general positive arguments. Evaluation of the Psi
+ function is confined to the integer and half-integer arguments required in
+ the evaluation of other functions in the library.
+
+
+ o Elliptic Integrals and Functions:
+
+    amelp  ------- compute the elliptic amplitude function.
+    felp  -------- compute complete and incomplete elliptic integrals
+                   of the first and second kind.
+    gelp  -------- compute a general elliptic integral.
+    g2elp  ------- compute a general elliptic integral with nonzero
+                   lower limit.
+    nome  -------- evaluate the nome q(k) for elliptic functions of
+                   modulus k.
+    theta  ------- evaluate the Jacobian theta functions.
+
+     Elliptic integrals are evaluated by using an extension of the Bartky
+ approach, using arithmetic and geometric means. The accuracy standard for
+ elliptic integrals is 14 or more decimal digits (ie. nearly full double
+ precision accuracy).
+
+     Jacobian elliptic functions are evaluated with the aid of theta function
+ series. The accuracy standard for these evaluations is at least 14 decimal
+ digits. Rapid convergence of the series yields high execution efficiency.
+
+
+ o Bessel Functions of General Order:
+
+    jbes  -------- evaluate the Bessel function of the first kind.
+    nbes  -------- evaluate the Bessel function of the second kind.
+    ibes  -------- evaluate the Bessel function of the first kind
+                   at imaginary argument values.
+    kbes  -------- evaluate the Bessel function of the third kind
+                   at imaginary argument values.
+    drbes  ------- evaluate derivatives of the Bessel functions.
+    rcbes  ------- compute a sequence of Bessel function values
+                   via recurrence relations.
+
+     The general Bessel functions maintain a standard of accuracy of at least
+ 12 decimal digits over the full argument range. Series of Bessel functions,
+ with orders differing by one, are computed using recurrence relations. The
+ library also contains a function that analytically computes Bessel function
+ derivatives.
+
+
+ o Spherical Bessel Functions:
+
+    jspbes  ------- evaluate the spherical Bessel function of the
+                    first kind.
+    yspbes  ------- evaluate the spherical Bessel function of the
+                    second kind.
+    kspbes  ------- evaluate spherical Bessel functions of the third
+                    kind at imaginary argument values.
+    drspbes  ------ compute the derivatives of spherical Bessel
+                    functions.
+    rcspbes  ------ compute a series of spherical Bessel function
+                    values via recurrence relations.
+
+     The accuracy standard and coverage provided for spherical Bessel
+ functions matches that used for the Bessel functions.
+
+
+ o Airy Functions:
+
+     Airy functions of the first and second kind and their derivatives are
+ evaluated for all real arguments by a pair of library functions.
+
+    airy  -------- evaluate the Airy function of the first kind or
+                   its derivative.
+    biry  -------- evaluate the Airy function of the second kind
+                   or its derivative.
+
+ The standard of a minimum of 12 accurate decimal digits is maintained for
+ these functions.
+
+
+ -----------------------------------------------------------------------------
+
+ General Technical Comments:
+
+     The primary criteria governing the selection of evaluation algorithms
+ was the ability to maintain a high standard of accuracy over a comprehensive
+ parameter range. This dictated the use of analytic approximations rather than
+ optimized rational approximations. The latter approach can yield highly
+ efficient execution, but it requires separate approximations for each order
+ covered.
+
+     The range of orders for which Bessel function evaluation is efficient
+ extends from zero to one hundred. Efficiency declines as order increases,
+ however, and the use of asymptotic expansions in order is advised for the
+ rare application where many functions with order exceeding 100 must be
+ evaluated.
+
+     General forms of both complete and incomplete elliptic integrals are
+ evaluated in a uniform manner, that does not require the user to identify
+ a combination of integrals of the first, second, and third kind. The method
+ has been extended to the case of singular integrands, by means of an
+ automatically evoked transformation function (gsing). This approach
+ represents a significant simplification in the use of this important class
+ of functions. Its rapid convergence ensures high efficiency.
+
+-------------------------------------------------------------------------------
+                             FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     Factorial Functions:
+-------------------------------------------------------------------------------
+
+gaml
+
+     Evaluate the natural logarithm of the Gamma function.
+
+     double gaml(double x)
+       x = function argument
+      return value: y = log(Gamma(x))     (logarithm base = e)
+
+          This function is also used in the statistical function library.
+
+     ----------------------------------------------------------------------
+
+psi
+
+     Evaluate the psi function for integer and half-integer arguments.
+
+                psi(x) = d {log(Gamma(x))} / dx
+
+     double psi(int m)
+       m = integer function argument (m>0)
+      return value: y = psi(m)
+
+
+     double psih(double v)
+       v = half-integer function argument (v=n+.5 for integer n>=0)
+      return value: y = psi(v)
+
+          The arguments of the psi functions are those needed to
+          support the other functions in the library.
+
+-------------------------------------------------------------------------------
+
+     Elliptic Integrals and Functions:
+-------------------------------------------------------------------------------
+
+      F(x,k) = Intg(0 to x) 1/sqrt(1 - k^2*[sin(a)]^2) da ,
+
+      E(x,k) = Intg(0 to x) sqrt(1 - k^2*[sin(a)]^2) da , and
+
+      I(x,r,k) = Intg(0 to x) da/{(1-r*[sin(a)]^2)*sqrt(1-k^2*[sin(a)]^2)}
+
+ are the standard definitions of elliptic integrals of the first, second,
+ and third kind respectively. The parameter k is the modulus of the elliptic
+ integrals. Complete elliptic integrals are given by
+
+          K = F(pi/2,k)  and  E = E(pi/2,k).
+
+ The Bartky parameterization of elliptic integrals is outlined in the
+ discussion of gelp below.
+-------------------------------------------------------------------------------
+
+amelp
+
+     Compute the elliptic amplitude function phi = amp(u).
+
+     double amelp(double u,double k)
+       u = argument of function (u=F(v,k), u>=0)
+       k = modulus of elliptic functions
+      return value: v = amp(u)
+
+
+          This is the inverse of the elliptic integral of the first kind.
+          If  u = F(v,k) , then  v = v(u,k) is the amplitude function.
+          Jacobian elliptic functions satisfy
+
+          sn(u) = sin(v), cn(u) = cos(v),
+          and dn(u) = sqrt(1-k^2*[sin(v)]^2).
+          
+     --------------------------------------------------------------------
+
+felp
+
+     Compute complete and incomplete elliptic integrals of the first and
+     second kinds.
+
+     double felp(double an,double k,double *pk,double *pz,double *ph)
+       an = upper limit of elliptic integrals (an > 0 in radians)
+       k = modulus of the elliptic integrals
+       pk = pointer to store for complete integral K
+             ( output of K, E and E(an,k) can be suppressed
+               by calling with pk=NULL )
+       pz = pointer to store for function E(an,k)
+             ( pz=NULL will suppress output of E(an,k) and E )
+       ph = pointer to store for complete integral E(k)
+      return value: f = F(an,k) the elliptic integral of the first kind
+
+
+     --------------------------------------------------------------------
+
+     The integrand of a general elliptic integral is parameterized by
+     Bartky in the following form:
+
+          G(v,k:as,bs,cs) = Intg(0 to v) {M(as,bs,cs,k,y)/R(y,k)} dy  , with
+
+          R(y,k) = sqrt{[cos(y)]^2 + sqrt(1-k^2)*[sin(y)]^2} .
+
+          M = N/D  with,
+
+          N = { as*[cos(y)]^2 + bs*cs[sin(y)]^2 }  and
+
+          D = { as*[cos(y)]^2 + cs*sqrt(1-k^2)*[sin(y)]^2 } .
+
+
+     The Bartky parameters B=[as,bs,cs] can be chosen to produce a
+     general elliptic integral. Integrals of the first, second, and
+     third kind result from the following initial choices:
+
+          as = 1 and bs = cs = 1  for F(v,k) ,
+
+          as = 1 , bs = 1 - k^2 , and cs = sqrt(1 - k^2)  for E(v,k) , and
+
+          as = 1 , bs = 1/(1-r) , and cs = (1-r)/sqrt(1 - k^2)  for I(v,r,k).
+
+     -------------------------------------------------------------------------
+
+gelp
+
+     Compute a general elliptic integral G(an,k,B).
+
+     double gelp(double an,double k,double as,double bs,double cs, \
+                 double *pg,double *pf,double *pk)
+       an = upper limit of integral (an > 0 in radians)
+       k = modulus of elliptic integral
+       as,bs,cs = Bartky parameters of integrand (see note above)
+       pg = pointer to store for complete integral G=G(pi/2,k,B)
+             ( output of G, K, and F(an,k) is suppressed by calling
+               with pg=NULL )
+       pf,pk = pointers to store for F(an,k) and K respectively
+                (output of these integrals of the first kind
+                 is suppressed when pf=0)
+      return value: g = G(an,k,B) the incomplete integral
+
+     --------------------------------------------------------------------
+
+g2elp
+
+     Compute a general elliptic integral with nonzero lower limit
+     G2(an,bn,k,B).
+
+     double g2elp(double an,double bn,double k,double as,double bs, \
+                  double cs)
+       an = lower limit of the integral (radians)
+       bn = upper limit of the integral (radians)
+       k = modulus of elliptic integral
+       as,bs,cs = Bartky parameters of integrand
+      return value: g2 = G2(an,bn,k,B) = G(bn,k,B)-G(an,k,B)
+
+
+         G2(a2,a1,k,B) = Intg(w=a1 to a2) { M(B,k,w)/R(w,k) dw}
+
+     -------------------------------------------------------------------
+
+
+     The following two functions are evoked automatically by gelp and g2elp
+     respectively when a singular integral (cs<0.) is involved. They are not
+     normally called directly by an application.
+    
+gsng
+
+     Convert a singular elliptic integral (*pc < 0.) to non-singular form.
+
+     double gsng(double *pa,double *pb,double *pc,double b,double an)
+       pa,pb,pc = pointers to the stores for the integrand's Bartky
+                  parameters (these parameters correspond to as,bs,cs
+                  in the note above, with singularity -> cs<0.)
+       b = modulus parameter (b=sqrt(1-k*k))
+       an = upper limit of integral (an > 0 in radians)
+      return value: I = increment to integral after transformation
+                        (I=HUGE -> limit is coincident with the
+                         singularity of the integrand)
+
+     -----------------------------------------------------------------------
+
+gsng2
+
+     Convert an elliptic integral with non-zero lower limit to non-singular
+     form.
+
+     double gsng2(double *pa,double *pb,double *pc,double b, \
+                  double an,double bn)
+     double *pa,*pb,*pc,b,an;
+       pa,pb,pc = pointers to the stores for the integrand's Bartky
+                  parameters (these parameters correspond to as,bs,ds
+                  in the note above, with singularity -> ds<0.)
+       b = modulus parameter (b=sqrt(1-k*k))
+       an = lower limit of integral (radians)
+       bn = upper limit of integral
+      return value: I2 = increment to integral after transformation
+                        (I2=HUGE -> limit is coincident with the
+                         singularity of the integrand)
+
+
+          The Bartky parameters *pa,*pb,*pc are altered by these
+          functions. The value of the integral is given by
+
+            G(v,k:as,bs,cs) = I + G'(v,k:as',bs',cs') ,
+
+            or G2(v2,v1:as,bs,cs) = I2 + G'(v2,v1:as',bs',cs') ,
+
+          with  as', bs', and cs' the transformed parameters
+          resulting from application of gsng or gsng2. If the
+          singularity of the integrand lies inside the region of
+          integration, this result must be interpreted as a Cauchy
+          principle value integral.
+
+     -----------------------------------------------------------------------
+
+nome
+
+     Evaluate the nome q(k) for elliptic functions of modulus k.
+
+     double nome(double k,double *pk,double *pkp)
+       k = modulus of elliptic functions
+       pk = pointer to store for K
+       pkp = pointer to store for K1
+      return value: f = q(k)
+
+
+          The nome is defined by
+
+           q(k) = exp( -pi*K1/K) ,  with K = F(pi/2,k),
+
+          and  K1 = F(pi/2,k1) ,  where  k1 = sqrt(1 - k^2) .
+
+     -----------------------------------------------------------
+
+theta
+
+     Evaluate the Jacobian theta functions.
+
+     double theta(double u,int n)
+       u = argument of the theta function
+       n = index of the theta function = 0,1,2,or 3
+      return value:  theta(u,n)
+
+
+     The computation of theta functions must be initialized by
+     calling the function stheta to initialize the modulus.
+
+
+     void stheta(double k)
+        k = modulus of elliptic functions
+
+
+          The theta functions are related to elliptic functions by:
+
+             sn(u) = theta1(u)/(sqrt(k)* theta0(u)) ;
+
+             cn(u) = sqrt(k1/k)* theta2(u)/theta0(u); and
+
+             dn(u) = sqrt(k1)* theta3(u)/theta0(u).
+
+             k is the modulus and k1 = sqrt(1-k^2) .
+
+
+-------------------------------------------------------------------------------
+
+     Bessel Functions:
+-------------------------------------------------------------------------------
+
+     The Bessel functions evaluated by the library are defined by
+
+          J(n,x) = {(x/2)^n}/Gamma(n)}* Sum(k=0 to infinity) {
+                     (-x^2/4)^k / k!*Gamma(n+k) }  ,
+
+          Y(n,x) = N(n,x) = {cos(pi*n)J(n,x) - J(-n,x)}/sin(pi*n) ,
+
+          I(n,x) = (i)^{-n} * J(n,i*x) , and
+
+          K(n,x) = (i*pi/2)(i)^n *{ J(n,i*x) + i*Y(n,i*x) }  .
+
+ These definitions require the use of limit procedures for Y and K when the
+ order n is an integer.
+
+-------------------------------------------------------------------------------
+
+jbes
+
+     Evaluate the Bessel function of the first kind J(n,x).
+
+     double jbes(double v,double x)
+       v = order of the function (v>=0.)
+       x = function argument (x>=0.)
+      return value: f = J(n,x)
+
+     -----------------------------------------------------------
+
+nbes
+
+     Evaluate the Bessel function of the second kind Y(n,x).
+     ( N(n,x) is an alternative notation.)
+
+     double nbes(double v,double x)
+       v = order of the function (v>=0.)
+       x = function argument (x>=0.)
+      return value: f = Y(n,x)
+
+     ------------------------------------------------------------
+
+ibes
+
+     Evaluate the modified Bessel function of the first kind I(n,x).
+     ( This is a Bessel function with imaginary argument. )
+
+     double ibes(double v,double x)
+       v = order of the function (v>=0.)
+       x = function argument (x>=0.)
+      return value: f = I(n,x)
+
+     -------------------------------------------------------------------
+
+ kbes
+
+     Evaluate the modified Bessel function of the third kind K(n,x).
+
+     double kbes(double v,double x)
+       v = order of the function (v>=0.)
+       x = function argument (x>=0.)
+      return value: f = K(n,x)
+
+     -------------------------------------------------------------------
+
+drbes
+
+     Evaluate the derivatives of Bessel functions.
+
+     double drbes(double x,double v,int f,double *p)
+       x = argument of the function (x>=0.)
+       v = order of the function (v>=0.)
+       p = pointer to store for supplied function value Z(v,x)
+            (p=0 -> compute the required function value)
+       f = function type flag, with:
+             f='j' -> dJ(v,x)/dx
+             f='y' -> dY(v,x)/dx
+             f='i' -> dI(v,x)/dx
+             f='k' -> dK(v,x)/dx
+      return value: f = dZ(v,x)/dx , where Z=J,Y,I,or K
+
+     ----------------------------------------------------------
+
+ rcbes
+
+     Recurrence relations for the evaluation of a sequence of Bessel
+     functions.
+
+     double rcbes()
+      return value: f = value of the next Bessel function in the
+                        order of the recurrence (see setrcb below)
+
+
+     The recurrence sequence must be initialized by a call of
+     the function setrcb. This call determines the function
+     type, recursion direction, the starting order, and the
+     argument of the sequence.
+
+     void setrcb(double u,double y,int fl,int dr,double *pf, \
+                 double *ph)
+       u = starting order of the Bessel functions (u>=0.)
+       y = argument of the functions (y>=0.)
+       fl = function type flag, with:
+             fl='j' -> J(v,x)
+             fl='y' -> Y(v,x)
+             fl='i' -> I(v,x)
+             fl='k' -> K(v,x)
+       dr = direction flag, with:
+             dr='u' -> increasing order
+             dr='d' -> decreasing order
+       pf,ph = pointers to store for first two function values
+                ( *pf=Z(u,y) , *ph=Z(u+1,y) if dr='u' and
+                  *pf=Z(u,y) , *ph=Z(u-1,y) if dr='d' )
+
+
+           The functions J and I are stable for decreasing recurrence,
+           while Y and K have stable increasing recurrence.
+
+
+-------------------------------------------------------------------------------
+
+     Spherical Bessel Functions:
+-------------------------------------------------------------------------------
+
+     The spherical Bessel functions are defined by
+
+          j(n,x) = sqrt(pi/2x)*J(n+1/2,x) ,
+
+          y(n,x) = sqrt(pi/2x)*N(n+1/2,x) , and
+
+          k(n,x) = {exp(-x)/x}* Sum(k=0 to n) {
+                                [(n+k)! / (k!(n-k)!]*(2x)^k)] } .
+
+-------------------------------------------------------------------------------
+
+jspbes
+
+     Evaluate the spherical Bessel function j(n,x).
+
+     double jspbes(int n,double x)
+       x = argument of function (x>=0.)
+       n = order of function (n>=0)
+      return value: f = j(n,x)
+
+     --------------------------------------------------------
+
+yspbes
+
+     Evaluate the spherical Bessel function of the second kind y(n,x).
+
+     double yspbes(int n,double x)
+       x = argument of function (x>=0.)
+       n = order of function (n>=0)
+      return value: f = y(n,x)
+
+     -----------------------------------------------------------
+
+kspbes
+
+     Evaluate the modified spherical Bessel functions k(n,x) and k(n,-x).
+
+     double kspbes(int n,double x)
+       x = argument of function
+            ( x>0. -> exponentially decreasing solution, and
+              x<0. -> exponentially increasing solution)
+       n = order of function (n>=0)
+      return value: f = k(n,x)
+
+
+          The normalization chosen for k(n,x) yields a leading
+          asymptotic term = exp(-x)/x at large x.
+
+     -------------------------------------------------------------------
+
+drspbes
+
+     Evaluate the derivatives of spherical Bessel functions.
+
+     double drspbes(double x,int n,int f,double *p)
+       x = argument of function (x>=0. for j and y)
+       n = order of function (n>=0)
+       p = pointer to store for supplied function value
+            (p=0 -> compute the required function value)
+       f = function type flag, with:
+            f='j' -> dj(n,x)/dx
+            f='y' -> dy(n,x)/dx
+            f='k' -> dk(n,x)/dx
+      return value: d = dz(n,x)/dx for z=j,y,or k
+
+     ----------------------------------------------------------------
+
+rcspbes
+
+     Recurrence relations for evaluating a sequence of spherical Bessel
+     functions.
+
+     double rcspbs()
+      return value: f = value of the next spherical Bessel function
+                        in the order of the recurrence (see setrcsb
+                        below)
+
+
+     The recurrence sequence must be initialized by a call of
+     the function setrcsb. This call determines the function
+     type, recursion direction, the starting order, and the
+     argument of the sequence.
+
+     setrcsb(int n,double y,int f,int dr,double *pf,double *ph)
+       n = starting order of the spherical Bessel function
+           sequence (n>=0)
+       y = argument of the functions (y>=0.)
+       f = function type flag, with:
+             f='j' -> dj(n,x)/dx
+             f='y' -> dy(n,x)/dx
+             f='k' -> dk(n,x)/dx
+       dr = direction flag, with:
+             dr='u' -> increasing order
+             dr='d' -> decreasing order
+       pf,ph = pointers to store for first two function values
+                ( *pf=z(n,y) , *ph=z(n+1,y) if dr='u' and
+                  *pf=z(n,y) , *ph=z(n-1,y) if dr='d' )
+
+
+-------------------------------------------------------------------------------
+
+     Airy Functions:
+-------------------------------------------------------------------------------
+
+     The Airy functions can be defined in terms of Bessel functions, with
+
+          Ai(x) = {sqrt(x/3)/pi} K(1/3,u) for x >= 0
+
+                = {sqrt(-x)/3} { J(1/3,u) + J(-1/3,u) } for x < 0.
+
+          Bi(x) = sqrt(x/3) { I(-1/3,u) + I(1/3,u) } for x >= 0
+
+                = sqrt(-x/3) { J(-1/3,u) - J1/3,u)) } for x < 0.
+
+          Here u = (2/3)*(|x|)^1.5 .
+
+-------------------------------------------------------------------------------
+
+airy
+
+     Evaluate the Airy function Ai(x) or its derivative Ai'(x).
+
+     double airy(double x,int df)
+       x = argument of the function
+       df = derivative flag, with
+             0 -> Ai and 1 -> Ai'
+      return value: f = Ai(x) if df=0
+                    f = Ai'(x) if df=1
+
+     -------------------------------------------------------------------
+
+biry
+
+     Evaluate the Airy function Bi(x) or its derivative Bi'(x).
+
+     double biry(double x,int df)
+       x = argument of the function
+       df = derivative flag, with
+             0 -> Bi and 1 -> Bi'
+      return value: f = Bi(x) if df=0
+                    f = Bi'(x) if df=1

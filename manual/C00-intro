@@ -1,0 +1,263 @@
+                    THE CCM MATH LIBRARY MANUAL
+
+                          Dan Atkinson
+
+ CONTENTS
+
+     Chapter                                      Subject
+
+  1   matrix     ---------------------------     Linear Algebra
+  2   intg       ---------------------------     Numerical Integration
+  3   geom       ---------------------------     Geometry and Trigonometry
+  4   cfit       ---------------------------     Curve Fitting
+  5   roots      ---------------------------     Roots and Optimization
+  6   fft        ---------------------------     Fourier Analysis
+  7   simu       ---------------------------     Simulation Support
+  8   statf      ---------------------------     Statistical Functions
+  9   sfunc      ---------------------------     Special Functions
+ 10   sort       ---------------------------     Sorts and Searches
+ 11   tseries    ---------------------------     Time Series Modeling
+ 12   complex    ---------------------------     Complex Arithmetic
+ 13   xarm       ---------------------------     High Precision Arithmetic
+ 14   util       ---------------------------     Utility Operations
+
+-------------------------------------------------------------------------------
+
+     CCM Library Description
+
+     The CCM library contains a collection of functions, coded in the C
+ language, that perform computations in the areas indicated by the chapter
+ subjects in the contents list. These functions were developed and evolved
+ over a period of nearly thirty years of intense work on scientific and
+ technical problems. The primary objectives governing library development
+ were: portability; execution efficiency; and ease of use.
+
+          portability: The library code has been ported to many
+                       platforms. { Atari ST; Vax minicomputer;
+                       UNIX workstations from HP, Sun, and SGI;
+                       Intel based PCs running extended DOS,
+                       and Linux.} The typical function has been
+                       reused on numerous projects.
+
+          efficiency:  Functions in the library have been tuned
+                       to localize data access so that they
+                       can execute efficiently on modern systems
+                       using multilevel cache memory.
+
+          ease of use: Simple interfaces are a primary development
+                       goal. The number of call parameters used
+                       in library functions is modest.
+
+     Library functions are designed to complement one another. For example,
+ analytic approximations are used for function evaluations to ensure high
+ and reliable accuracy. For efficiency these evaluations can be converted
+ by other library functions into Tchebycheff Pade' approximations with
+ little sacrifice in accuracy.
+
+     The library code aims at exploiting the full expressive potential of the
+ C-Language. Functions are definitely not simple translations of FORTRAN code.
+ Pointer variables and dynamic allocation are widely used, and structures
+ replace multidimensional arrays. I believe that you will discover that this
+ approach significantly enhances the use of this code.
+
+-------------------------------------------------------------------------------
+
+     Using this Manual
+
+     Each chapter of the manual covers a major functional section of the
+ library, with source code in the directory whose name is included in the
+ chapter's name. The chapter starts with an overview of the applications
+ supported and some technical notes on their utility and accuracy. Each
+ function is described in detail in a function synopsis that defines its
+ action and gives a detailed description of call parameters and return
+ values (including any restrictions on the range of values).
+
+     A quick way to locate the synopsis for a function is to search the
+ chapter containing that function using the regular expression:
+
+               ^function-name
+
+ since each function synopsis starts with the function's name in the
+ leftmost position on a line.
+
+-------------------------------------------------------------------------------
+
+     Notation
+
+     A strictly ASCII format for this manual is clearly desirable to promote
+ portability. This poses a problem since equations are needed to describe
+ functions in the library. The problem is addressed here by introducing 
+ the following notational conventions.
+
+     Summations:                   Sum(i=1 to n) { ---- }
+     Integrals:                    Intg(x=a to b) { --- } dx
+     Matrix transpose:             A~
+     Matrix Hermitian conjugate:   H^
+     Matrix component:             B[i,j]
+     Vector component:             U[k]
+     Exponentiation:               x^2 or x^e , x^(-2) or x^(-e)
+
+ Exponentiation can be distinguished from hermitian conjugation by context
+ and by the fact that the symbol ^ is followed by a numeral or a lower case
+ alphabetic symbol.
+
+   I apologize for the use of this clumsy device. 
+
+-------------------------------------------------------------------------------
+
+     Notable Features of CCM
+
+     The following list highlights features that distinguish the approach
+ used in the CCM library from the standard fare of numerical analysis code.
+
+       o  Functions that deal with large data sets, in
+          particular large linear algebra problems have
+          been specially designed to exploit the cache
+          memory systems used in modern microprocessors.
+          They achieve a high and stable computation rate
+          on large problems.
+
+       o  A combination of sequential and batch estimation
+          offers significant advantages in non-linear least
+          square computations. Functions for both types of
+          estimation are included in the library. The test
+          programs provide examples of their combined use.
+
+       o  Elliptic integrals are evaluated using the Bartky
+          parameterization. This permits use of a single
+          function for elliptic integrals of all three
+          major types. A major simplification in the use of
+          this important class of functions.
+
+       o  The pseudorandom number generators implemented in
+          the library employ buffer shuffle algorithms to
+          eliminate problems arising from the limited period
+          of standard congruential algorithms (see Knuth
+          Vol. 2 3rd edition).
+
+       o  Function evaluations in the complex arithmetic
+          package yield principle branch evaluations of
+          multi-valued functions that conform to the
+          recommended standard for elementary function
+          branch cuts. This standardization simplifies the
+          use of these functions in evaluating more
+          complicated multi-valued expressions.
+
+       o  A high-precision arithmetic package is included,
+          together with a full library of high precision
+          elementary functions. This supports a definitive
+          analysis of the effect of truncation errors in
+          floating point computation. These utilities are
+          also valuable in problems where extremely high
+          (32-decimal digit) precision is desired.
+          
+       o  The time-series package in the library implements an
+          innovative approach to the identification, estimation,
+          and evaluation of Box-Jenkins ARIMA models. It also
+          includes a significant generalization that deals with
+          advanced "factor models" for extracting data from
+          complex time-series. The preliminaries required for
+          model fitting are simplified by these powerful new
+          estimation techniques.
+
+-------------------------------------------------------------------------------
+
+     Package Structure
+
+     Each library segment has it source code in a directory named for the
+ segment. This directory also contains the header files needed to compile
+ the code. The source directory has a subdirectory named 'test' that
+ contains test source code for the functions. Header comments in the test
+ code source describe the functions tested and the inputs needed to run the
+ test, while a sample of test output is appended to each test source file.
+ Data input files are normally found in the 'test/data' subdirectory, while
+ other subdirectories of the segment directory or its 'test' subdirectory
+ contain code explained in local 'README' files.
+
+-------------------------------------------------------------------------------
+
+     Standard Header Files
+
+     The header file <ccmath.h> is provided for general use. Modern C
+ compilers support the function prototypes in this file. In addition, each
+ library segment contains 'old style' non-prototype headers for the segment.
+ These should work with old C compilers.
+
+-------------------------------------------------------------------------------
+
+ Bibliography
+
+     This bibliography identifies references that we believe will be very
+ useful in developing scientific applications. In general, definitions of
+ special functions used in the CCM Math Library conform to those used by
+ Abramowitz and Stegun. Divergence from this convention is explicitly noted
+ in the relevant function synopses.
+
+     Additional references on special topics are given in the Chapters on
+ specific functional areas.
+
+
+ C Language:
+
+     B. W. Kernighan and D. M. Ritchie, "The C Programming Language."
+          Prentice Hall: Englewood Cliffs, NJ , 1978. 
+
+     S. P. Harbison and G. L. Steele Jr., " A C Reference Manual."
+          Prentice-Hall: Englewood Cliffs, NJ , 3rd Edition 1991.
+
+     P. J. Plauger, "The Standard C Library." Prentice Hall:
+          Englewood Cliffs, NJ , 1992.
+
+     A. Koenig, "C Traps and Pit Falls." Addison Wesley:
+          Reading, MA , 1989.
+
+
+ General Numerical Analysis
+
+     G. Dahalquist and A. Bjorck, "Numerical Methods."
+          Prentice Hall: Englewood Cliffs, NJ , 1974.
+
+     H. B. Keller and E. Isaacson, "Analysis of Numerical Methods."
+          McGraw-Hill: New York, NY , 1966.
+
+     G. H. Golub and C. F. Van Loan, "Matrix Computations," 3rd
+          edition. The Johns Hopkins University Press: Baltimore,
+          MD , 1996.
+
+     A. S. Householder, "The Theory of Matrices in Numerical Analysis."
+          Blaisdell: New York, NY , 1964.
+
+
+ Special Functions
+
+     M. Abramowitz and I. A. Stegun, "Handbook of Mathematical Functions."
+          National Bureau of Standards: Washington, DC , 1964.
+
+     I. S. Gradshteyn and I. W. Ryzhik, "Tables of Integrals, Series, and
+          Products."   Academic Press: New York, NY , 1965.
+
+
+ Algorithms
+
+     D. E. Knuth, "The Art of Computer Programming," Vol. 1: "Fundamental
+          Algorithms," 3rd edition, Addison-Wesley: Reading, MA , 1997.
+          and Vol. 2: "Seminumerical Algorithms," 3rd edition, Addison-Wesley:
+          Reading, MA , 1998.
+          and Vol. 3: "Sorting and Searching," 2nd edition, Addison-Wesley:
+          Reading, MA , 1998.
+
+     R. Sedgewick, "Algorithms."
+          Addison-Wesley: Reading, MA , 1983.
+
+
+ Special Topics
+
+     G. E. P. Box and G. M. Jenkins, "Time Series Analysis: Forecasting and
+          Control."   Holden-Day: San Francisco, CA , 1976.
+
+     R. Fletcher, "Practical Methods of Optimization," Vol. 1: "Unconstrained
+          Optimization." J. Wiley and Sons: New York, NY , 1980.
+
+     J. F. Hart, E. W. Cheny, C. L. Lawson, H. J. Machly, C. K. Mesztenyi,
+     J. R. Rice, H. G. Thacher Jr., and C. Witzgall, "Computer
+          Approximations." Robert E. Krieger: Malabar, FL , 1978.

@@ -1,0 +1,8 @@
+     The files in this directory support an increase in the precision
+     of the functions in the 'xarm' library segment. This is accomplished
+     by increasing the size of the mantissa. Possible enhanced mantissa
+     sizes are 11, 15, 19, 23, 27, and 31 sixteen bit words. First
+     redefine XDIM in 'xpre.h' to be equal to one of these values,
+     then replace the 'constant.h' header with the corresponding
+     'const[nn].h' from this directory, and recompile the segment code
+     with these new header files.

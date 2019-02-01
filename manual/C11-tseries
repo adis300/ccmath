@@ -1,0 +1,725 @@
+                               Chapter 11
+
+                          TIME SERIES ANALYSIS
+
+                                Summary
+
+               Time series functions support the use of models
+               in practical applications requiring analysis
+               and/or forecasting of series. The basic
+               time-domain model is a series of the
+               autoregressive moving average (ARMA) type. The
+               software can successfully deal with
+               generalizations, such as integrated (ARIMA)
+               models and factor models. Specific areas covered
+               are:
+
+                 o Generation and Prediction of ARMA Time Series
+                 o Estimation of ARIMA Model Parameters
+                 o Estimation of Factor Model Parameters
+                 o Model Identification and Evaluation
+                 o Time Series Utility Operations
+
+               Factor models are a powerful generalization of
+               the Box-Jenkins approach. They support the
+               extraction of meaningful quantitative measures
+               from series with highly correlated noise.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+     The functions of this library segment are used for the analysis and
+ estimation of Box Jenkins time series models. These models have been
+ applied to a wide range of problems in forecasting, process control, and
+ the characterization of time series. Both standard ARIMA models and an
+ important generalization to factor models can be identified and estimated.
+
+ o Generation and Prediction of ARMA Time Series:
+
+    sarma  -------- generate successive terms in an ARMA series.
+    parma  -------- predict the values of an ARMA time series.
+
+
+ o Estimate the Parameters of an ARIMA Model:
+
+    evmod  -------- compute the residual of an ARIMA series.
+    drmod  -------- compute the model residual and the derivatives
+                    with respect to model parameters.
+    seqts  -------- perform a sequential update of model parameters.
+    fixts  -------- perform a batch mode, Gauss-Newton update of
+                    the ARIMA model parameters.
+
+
+ o Estimate the Parameters of a Factor Model:
+
+    evfmod  ------- compute the residual in a time series Factor model.
+    drfmod  ------- compute the model residual and the derivatives
+                    with respect to model parameters for a Factor model.
+    seqtsf  ------- perform a sequential update of Factor model parameters.
+    fixtsf  ------- compute a batch mode, Gauss-Newton, update of Factor
+                    model parameters.
+
+
+ o Model Identification and Evaluation:
+
+    sany  -------- compute both direct and inverse autocorrelation
+                   coefficients of a time series.
+    resid  ------- analyze the residuals of a time series model.
+
+     The residuals of a model should be consistent with the assumption that
+ the series is driven by "white" noise. Several tests of this hypothesis are
+ applied in the resid() function.
+
+
+ o Time Series Utility Operations:
+
+    xmean  ------- subtract the mean value of an input series from
+                   each term.
+    sdiff  ------- apply iterations of the sequential difference operator
+                   to a series.
+    sintg  ------- invert the sequential difference operation (ie.
+                   integrate the series).
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The fundamental ARMA model underlying such applications is a stationary
+ stochastic process driven by uncorrelated "white" noise. The model equation
+ takes the form
+
+          x[i] = e[i] + Sum(j=1 to m) a[j]*x[i-la[j]] -
+                        Sum(k=1 to n) b[k]*e[k-lm[k]]  ,
+
+ where x[i] are the series values and e[i] are the values of the driving
+ noise. Nonstationary series can be addressed by employing differenced series,
+ with
+
+          x[i] = D^d{ y[i] },   D is the difference operator
+                                D{ y[i] } = y[i] - y[i-1] ,
+
+ and d is the order of difference. Models with d>0 are referred to as ARIMA
+ models, with the I standing for integrated.
+
+     Factor models provide a powerful generalization of the time series model
+ in which a series has both a value y[i] and a condition code c(i) associated
+ with the "time" index i. The basic model equation takes the form
+
+          y[i] = f[c[i]] + v[i]  ,
+
+ where v[i] is an ARIMA model series. The condition index c[i] specifies a
+ factor parameter f, which represents a mean value corresponding to the coded
+ condition. This condition concept is quite general. The index c[i] can be
+ used to distinguish physical conditions at different times, effects periodic
+ in time, or epochs separated by a change in the environment. Factor models
+ are used to estimate a quantitative measure of the effect of changing
+ conditions from highly correlated input series.
+
+     The estimation process for both ARIMA and Factor models employs a mix of
+ sequential and batch mode passes through the observed series. This
+ combination combines the powerful search capabilities of the sequential
+ technique with the refined estimates produced by using good initial
+ parameters in Gauss-Newton processing. Sequential estimation can also be used
+ to develop adaptive models.
+
+-------------------------------------------------------------------------------
+                        FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     External Variables for ARMA Models:
+_______________________________________________________________________________
+
+     The header files arma.h and ccmath.h contain definitions of the basic
+ model specification structure used in the time series functions. One of
+ these header files must be included.
+
+     arma.h
+
+          #ifndef NULL
+          #define NULL 0L
+          #endif
+          struct mcof {double cf; int lag;};
+
+    The time series model's structure is specified in external arrays for
+ both autoregressive (par) and moving average (pma) parameters. Each element
+ of these structure arrays contains a model parameter (p->cf) and the lag
+ (p->lag) at which it acts. The external variables required for model
+ generation and estimation are listed below. Their declarations must appear
+ in any program that uses the ARMA model evaluation or estimation functions.
+
+             struct mcof *par,*pma;
+             int nar,nma,np;
+
+             par = pointer to store of structure array of autoregressive
+                    parameters and lags (dimension=nar)
+             pma = pointer to store of structure array of moving average
+                    parameters and lags (dimension=nma)
+             nar = number of autoregressive parameters
+             nma = number of moving average parameters
+              np = total number of parameters (np=nar+nma)
+
+ The estimation functions assume that parameters are stored in a single
+ structure array. Allocation of this storage is illustrated by the the
+ following sequence.
+
+               np=nar+nma;
+               par=(struct mcof *)calloc(np,sizeof(*par));
+               pma=par+nar;
+
+-------------------------------------------------------------------------------
+
+     ARMA Model Generation and Prediction:
+-------------------------------------------------------------------------------
+
+sarma
+
+     Generate successive terms in an autoregressive moving average (ARMA)
+     series.
+
+     double sarma(double er)
+     double er;
+       er = value of the driving error input
+      return value: y = current term of series
+
+          The model is generated by
+
+          y[k] = er[k] + Sum(i=0 to nar-1){ par[i]->cf*y[k-par[i]->lag]}
+               - Sum(j=0 to nma-1){ pma[j]->cf*er[k-pma[j]->lag]} .
+
+     The simulation must be initialized by a call of setsim.
+
+setsim
+
+     void setsim(int k)
+        k = control flag, with
+             k=1 -> initialize simulation storage
+             k=0 -> free the storage allocated by setsim(1)
+
+          
+          The storage initialized by setsim contains no history.
+          Lagged values of er and y are initially zero. The
+          generator is normally run through a number of initial
+          steps before storing simulated output. This serves to
+          eliminate transient startup effects.
+
+     -----------------------------------------------------------------
+
+parma
+
+     Predict values of an ARMA time series.
+
+     double parma(double *x,double *e)
+       x = pointer to storage of current series value
+       e = pointer to storage of current residual
+      return: xp = predicted value of series
+
+
+          Each call of parma generates a single step prediction.
+          Multi-step forward predictions are generated by multiple
+          calls with zeros loaded in the current residual. The
+          following code sequence generates a k-step prediction.
+
+              for(i=0; i<k ;++i){
+                *(x+i+1)=parma(x+i,e+i,m);
+                *(e+i+1)=0.;
+               }
+
+          This loop alters "future" values of both the series
+          and the residuals. The starting point (x,e) must be
+          retained to support repeated predictions.
+
+-------------------------------------------------------------------------------
+
+     ARMA Model Evaluation:
+-------------------------------------------------------------------------------
+
+evmod
+
+     Compute the residual in an ARMA model.
+ 
+     double evmod(double y)
+       y = observed value of time series
+      return value: ee = y-yp, where yp is the value predicted by the model
+
+
+          The model prediction yp is based on the lagged values of the
+          observations and estimated errors computed by evmod.
+
+           yp[k] = Sum(i=0 to nar-1) {par[i]->cf*y[k-par[i]->lag]}
+                 -  Sum(j=0 to nma-1) {pma[j]->cf*ee[j-pma[j]->lag]} ,
+
+           where ee[k] = y[k] - yp[k] at "time" k. The lagged values of
+           observations and prediction error are automatically updated
+           by the function.
+
+     A call of setev must be used to initialize storage for evmod.
+
+setev
+
+     void setev(int k)
+        k = control flag, with
+             k=1 -> initialize storage
+             k=0 -> free storage initialized by setev(1)
+
+
+          The storage initialized by setev contains no history.
+          Lagged values of ee and y are initially zero.
+
+     -----------------------------------------------------------------
+
+drmod
+
+     Compute the model residual and the derivatives of the predictor with
+     respect to model parameters (core function in model estimation).
+
+     double drmod(double y,double *dr)
+       y = observed value of the time series
+       dr = pointer to array of derivatives of the predictor yp with
+            respect to model parameters (order nar-autoregressive
+            followed by nma-moving average, dimension = np)
+      return value: ee = y-yp, where yp is the value predicted by
+                         the time series model
+
+
+          The derivatives evaluated by this function are
+
+          dr[i] = Del(par[i]->cf){yp}  for i=0 to nar-1 , and
+
+          dr[nar+j] = Del(pma[j]->cf){yp}  for j=0 to nma-1 ,
+
+          Here Del(t){x} denotes the partial derivative of x
+          with respect to the parameter t. The prediction
+          function yp is evaluated in the manner indicated
+          above (see evmod).
+
+     A call to setdr must be used to initialize internal storage.
+
+setdr
+
+     setdr(int k)
+       k = control flag, with
+            k=1 -> initialize internal storage
+            k=0 -> free storage initialized by setdr(1)
+
+
+          The storage initialized by setdr contains no history
+          Lagged values of ee and y are initially zero.
+
+-------------------------------------------------------------------------------
+
+     ARMA Model Estimation:
+-------------------------------------------------------------------------------
+
+     The two estimation functions are complementary, since the sequential
+ form is an excellent search procedure while the Gauss-Newton algorithm
+ converges rapidly from a good estimate. In practice, the initial ARMA
+ parameters can normally be set to zero when estimation is started with
+ sequential passes.
+
+seqts
+
+     Perform a sequential estimation update of the parameters of a
+     time series model.
+
+     double seqts(double *x,int n,double *var,int kf)
+       x = pointer to input array containing observed values of the series
+       n = length of the input series
+       var = pointer to matrix array (np by np) proportional
+             to the updated parameter variance matrix at exit
+             (the constant of proportionality = ssq/(n-np),
+              index order nar autoregressive parameters
+              followed by nma moving average parameters)
+       kf = control flag, with
+             kf=0 -> initialize var to the identity matrix
+             kf=1 -> use the input var matrix
+      return value: ssq = sum of the squares of the model residuals
+
+ 
+         ssq = Sum(i=0 to n-1) { (yp[i] - x[i])^2 }  , 
+
+         with yp[i] = prediction i-1 -> i
+
+     ---------------------------------------------------------------
+
+fixts
+
+     Perform a fixed Gauss-Newton estimation iteration to fit time series
+     model parameters.
+
+     double fixts(double *x,int n,double *var,double *cr)
+       x = pointer to input array containing observed values of the series
+       n = length of the input series
+       var = pointer to matrix array (np by np) proportional
+             to the parameter variance matrix at exit
+             ( the constant of proportionality = ssq/(n-np) )
+       cr = pointer to array of dimension np containing the parameter
+            corrections estimated by this function call
+      return value: ssq = sum of the squares of the model residuals
+                           ssq = -1.0 -> singular var matrix
+
+
+          ssq = Sum(i=0 to n-1){ (yp[i] - x[i])^2 }
+
+          with yp[i] = prediction i-1 -> i
+
+          The index order for both cr and var is nar autoregressive
+          parameters followed by nma moving average parameters.
+
+
+-------------------------------------------------------------------------------
+
+     External Variables for Factor Models:
+-------------------------------------------------------------------------------
+
+     The basic factor model variables are delivered in a structure (of type
+ struct fmod), with components:
+          y.fac = integer encoding factor; and
+          y.val = corresponding value of series.
+ The structures employed in factor model estimation are defined in the
+ header files armaf.h and ccmath.h. One of these headers must be included.
+
+     armaf.h
+
+          #ifndef NULL
+          #define NULL 0L
+          #endif
+          struct mcof {double cf; int lag;};
+          struct fmod {int fac; double val;};
+
+     The structure of the model is specified in an external structure array,
+ including factor parameters (pfc), autoregressive parameters (par), and
+ moving average parameters (pma). Coefficients (p->cf) and lags (p->lag) are
+ required for autoregressive and moving average parameters. Only the
+ coefficient is employed for factors. Model parameters are delivered to
+ estimation and evaluation functions by the following external variables.
+ Their declarations must appear in any program that calls the factor model
+ evaluation and estimation functions.
+
+          struct mcof *pfc,*par,*pma;
+          int nfc,nar,nma,ndif,np;
+
+             pfc = pointer to store of structure array containing
+                    factor parameters (dimension=nfc)
+             par = pointer to store of structure array of autoregressive
+                    parameters and lags (dimension=nar)
+             pma = pointer to store of structure array of moving average
+                    parameters and lags (dimension=nma)
+             nfc = number of factor parameters
+             nar = number of autoregressive parameters
+             nma = number of moving average parameters
+              np = total number of parameters (np=nfc+nar+nma)
+            ndif = order of difference used
+
+ The factor model estimation functions assume that the parameters are stored
+ in a single array. Allocation of external storage in the calling program
+ should employ a code sequence such as,
+
+          np=nfc+nar+nma;
+          pfc=calloc(np,sizeof(*pfc));
+          par=pfc+nfc; pma=par+nar;
+
+ if the estimation functions are to be used.
+
+-------------------------------------------------------------------------------
+
+     Factor Model Evaluation:
+-------------------------------------------------------------------------------
+
+evfmod
+
+     Compute the residual in a factor model.
+
+     double evfmod(struct fmod y)
+       y = structure containing:
+            y.val = difference, of order ndif, of observed values
+                    the of time series, and
+            y.fac = factor corresponding to current value
+      return value: ee = y.val - yp, where yp is the value predicted
+                                     by the model
+
+
+          The model prediction yp is based on the lagged values of the
+          observations and estimated errors computed by evfmod. The
+          prediction is simply an ARMA model prediction with a mean,
+          computed by differencing the factor averages, imposed.
+
+         yp = D^d{f(k)} + Sum(i=0 to nar-1){ par[i]->cf*y[k-par[i]->lag] }
+              - Sum(j=0 to nma-1){ pma[j]->cf*ee[k-par[k]->lag] } .
+
+          Here D denotes the difference operator (see sdiff),
+          pcf[m(t)]->cf = f(k) ,  y[t]->fac = m(t) , and  d = ndif .
+
+          The one-step prediction errors ee are identical to those we
+          would obtain without differencing the values of the input series.
+ 
+     A call to setevf must be used to initialize internal storage.
+
+setevf
+
+     void setevf(int k)
+       k = control flag, with
+            k=1 -> initialize storage
+            k=0 -> free storage initialized by setevf(1)
+
+          The storage initialized by setevf contains no history.
+          Lagged values of er, y.val, and factor indices are
+          initially zero.
+
+     -------------------------------------------------------------------
+
+drfmod
+
+     Compute the model residual and the derivatives of the predictor with
+     respect to model parameters (core estimation function).
+
+     double drfmod(struct fmod y,double *dr)
+       y = structure containing:
+            y.val = difference, of order ndif, of observed values
+                    the of time series, and
+            y.fac = factor corresponding to current value
+       dr = pointer to array of derivatives of the predictor yp
+            with respect to model parameters (order nfc-factor ,
+            nar-autoregressive , nma-moving average)
+      return value: ee = y.val - yp, where yp is the value predicted
+                                      by the model
+
+
+          The derivatives computed by drfmod() are:
+          dr[m] = Del(par[m]->cf){ yp}  for m=0 to nfc-1,
+          dr[nfc+i] = Del(par[i]->cf){ yp}  for i=0 to nar-1, and
+          dr[nfc+nar+j] = Del(pma[j]->cf){ yp}  for j=0 to nma-1 .
+
+          Here Del(t){x} denotes the partial derivative of x
+          with respect to the parameter t. The prediction yp is
+          identical to that discussed above (see evfmod).
+
+     The internal storage used by drfmod must be initialized by a
+     call of setdrf.
+
+setdrf
+
+     setdrf(int k)
+       k = control flag, with
+            k=1 -> initialize storage
+            k=0 -> free storage initialized by setdrf(1)
+
+
+          The storage initialized by setdrf contains no history.
+          Lagged values of er, y.val and factor indices are
+          initially zero.
+
+-------------------------------------------------------------------------------
+
+     Factor Model Estimation:
+-------------------------------------------------------------------------------
+
+     The two estimation functions are complementary, since the sequential
+ form is an excellent search procedure while the Gauss-Newton algorithm
+ converges rapidly from a good estimate. In practice, the initial ARMA
+ parameters can normally be set to zero and a series mean used for initial
+ factor parameters. The estimation starts with a sequential search, and
+ fixed estimation is employed for the final passes.
+
+
+seqtsf
+
+     Perform a sequential estimation update of the parameters of a time
+     series factor model.
+
+     double seqtsf(struct fmod *x,int n,double *var,int kf)
+       x = pointer to input structure array containing
+            x[i].val = difference, of order ndif, of observed
+                       values the of time series, and
+            x[i].fac = factor corresponding to "time" i
+       n = length of the input series
+       var = pointer to matrix array (np by np) proportional to
+             the updated parameter variance matrix at exit
+             (the constant of proportionality = ssq/(n-np), 
+             index order nfc factor parameters, nar
+             autoregressive parameters, nma moving
+             average parameters)
+       kf = control flag, with
+             kf=0 -> initialize var to the identity matrix
+             kf=1 -> use the input var matrix
+      return value: ssq = sum of the squares of the model residuals
+
+
+           ssq = Sum(i=0 to n-1){ (yp[i] - x[i])^2 }
+
+           yp[i] = prediction i-1 > i
+
+          If ndif>0, the variance matrix, var, is constrained to be
+          orthogonal to the vector u, defined by:
+          u[i] = 1 for i=0 to nfc-1, and u[i] = 0 for i >= nfc.
+          Thus, V*u = 0  , where  V[i,j] = var[np*i+j] , and the
+          computed variance matrix V is singular when ndif>0.
+
+     ---------------------------------------------------------------------
+
+fixtsf
+
+     Perform a fixed Gauss-Newton estimation iteration to update
+     parameters of a time series factor model.
+
+     double fixtsf(struct fmod *x,int n,double *var,double *cr)
+       x = pointer to input structure array containing
+            x[i].val = difference, of order ndif, of observed values
+                       the of time series, and
+            x[i].fac = factor corresponding to "time" i
+       n = length of the input series
+       var = pointer to matrix array (np by np) proportional to the
+             updated parameter variance matrix at exit
+             (the constant of proportionality = ssq/(n-np) )
+       cr = pointer to array of dimension np containing the parameter
+            corrections estimated by this iteration
+      return value: ssq = sum of the squares of the model residuals
+
+
+           ssq = Sum(i=0 to n-1){ (yp[i] - x[i])^2 }
+
+           yp[i] = prediction i-1 -> i
+
+          The index order for both cr and var is nfc factor parameters
+          followed by nar autoregressive parameters followed by nma moving
+          average parameters. The constraint on var, defined above (see
+          seqtsf), applies when ndif>0.
+
+
+-------------------------------------------------------------------------------
+
+     Model Identification and Evaluation:
+-------------------------------------------------------------------------------
+
+sany
+
+     Compute the direct and inverse autocorrelation coefficients
+     of a time series to support model identification.
+
+     int sany(double *x,int n,double *pm,double *cd,double *ci, \
+          int nd,int ms,int lag)
+       x = pointer to start of input series
+           (The series values are altered by the function, at exit the
+            power spectra is stored in the array, starting at x+ndif. )
+       n = length of input series
+       pm = pointer to store for mean value (xm) of series
+       cd = pointer to array to be loaded with direct
+            autocorrelation  coefficients (i = 1 to lag)
+            cd[0] = 2nd moment of direct series
+       ci = pointer array to be loaded with inverse
+            autocorrelation coefficients (i = 1 to lag)
+            ci[0]= 2nd moment of inverse series
+       nd = order of differencing applied to input series
+            (If nd=0, the mean is subtracted.)
+       ms = order of smoothing of spectra
+       lag = maximum lag for which direct and inverse
+              autocorrelations are computed
+      return value: n = length of series used in Fourier
+                        analysis of correlations
+
+
+          The direct and inverse autocorrelations are computed by applying
+          an inverse Fourier transform to the complex series
+
+           { ps(w[j]) , 1./ps(w[j]) },  where ps(w[j])
+
+          is the power spectra of the input series. Direct autocorrelations
+          have a simple pattern for pure moving average series, while inverse
+          autocorrelations are simple for pure autoregressive series.
+
+     ----------------------------------------------------------------------
+
+ resid
+
+     Perform an analysis of the residuals of a time series model.
+
+     int resid(double *x,int n,int lag,double **pac,int nbin, \
+               double xa,double xb,int **phs,int *cks)
+       x = pointer to start of input series of model residuals
+           (one-step prediction errors). (This series is altered
+            to an unsmoothed power spectra by the function.)
+       n = length of input series
+       pac = pointer to array containing:
+             *pac = sum of squares over series
+             *(pac+k) = kth autocorrelation coefficient, for k=1 to lag
+       lag = maximum autocorrelation lag desired
+       nbin = number of histogram bins ( bin size = (xb-xa)/nbin )
+       xa = lower limit of error histogram
+       xb = upper limit of error histogram
+       phs = pointer to store of error histogram, with
+             *(phs-1) = number of residuals <xa
+             *(phs+nbin) = number of residuals >xb
+             *(phs+i) = number in ith bin i=0,1, - ,nbin-1
+       cks = pointer to array containing Kolmogorav-Smirnov statistics,
+             based on cumulative power spectra, with
+             cks[0] = points outside .25 significance threshold
+             cks[1] = points outside .05 significance threshold
+      return value: n = series length used in power spectra computation
+
+
+         The autocorrelations have an asymptotic large sample distribution
+         with variance ra2 = 1/(n-np) , where np is the number of
+         model parameters employed. The cumulative spectra is computed using
+
+         I(j) = I(j-1) + ps(w[j]) + ps(w[j-1]) ,
+
+         for j = 1,2, -- ,n/2 , starting with I(0) = 0. Storage allocated
+         for autocorrelation and histograms may be released with free(pac)
+         and free(phs-1) respectively.
+
+
+-------------------------------------------------------------------------------
+
+     Utility Series Operations:
+-------------------------------------------------------------------------------
+
+xmean
+
+     Subtract the mean value of a series from each term.
+
+     double xmean(double *x,int n)
+       x = pointer to start of input series
+           (at exit each term is modified by subtracting the mean xm)
+       n = length of the series
+      return value: xm = series mean
+
+
+           xm = { Sum(i=0 to n-1) x[i] }/n
+
+     -----------------------------------------------------------------
+
+sdiff
+
+     Apply iterations of the sequential difference operator to a series.
+
+     double sdiff(double y,int nd,int k)
+       y = current value of time series (in sequence)
+       nd = order of differencing (1 <= nd <= 6)
+       k = control flag, with
+            k=0 -> set initial differences to zero
+            k!=0 -> normal operation
+      return value: u = value of series with difference order nd
+
+     ----------------------------------------------------------------
+
+sintg
+
+     Invert the differencing of a time series (integration).
+
+     double sintg(double y,int ndint ,k)
+       y = current value of series
+       nd = order of integration (1<= nd <=6
+            inverse of difference operation)
+       k = control flag, with
+            k=0 -> set initial sums to zero
+            k!=0 -> normal operation
+      return value: u = value of series integrated to order nd
+
+
+          The use of zeros for initialization implies that the first
+          correctly differenced (integrated) term in a sequence will
+          have index nd. The action of these operators is specified by
+
+           D^m{x[j]} = Sum(i=0 to m) { [m!/i!*(m-i)!](-1)^i *x[j-i] }
+
+           I^n{x[j]} = Sum(j=0 to n) { [n!/j!(n-j)!] *x[j-i] }

@@ -1,0 +1,14 @@
+     This directory contains test code for the functions of the 'complex'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The correspondence between test programs and data input files
+     is indicated below.
+
+     tcarith  data/carith.dat
+     tcarop2  data/caop2.dat
+     tchypb   data/chypb.dat
+     tclog    data/clog.dat
+     tcsqrt   data/csqrt.dat
+     tctrig   data/ctrg.dat

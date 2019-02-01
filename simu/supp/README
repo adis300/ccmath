@@ -1,0 +1,10 @@
+     The functions 'lrana,c' and 'lranb.c' are c-code versions of
+     congruential generators that perform arithmetic modulo the
+     prime number 2^31 -1. The assembly code '.s' source modules
+     in the 'simu' directory should be replaced by this C code
+     when the installation target is a non-Intel platform.
+
+     The '.asm' modules are an alternative for 80x86 platforms
+     that can be assembled with the 'nasm' assembler. This
+     assembler employs an Intel type code format, rather than
+     the odd AT&T format employed by GNU C.\

@@ -1,0 +1,12 @@
+#! /bin/sh
+
+# script to compare test code output with the sample
+# output appended as a comment to the test source code
+# parameters: $1 = name of test source
+#             $2 to $n = command line parameters for test (if any)
+
+f=$1; shift
+cc -O2 $f -lccm -lm        # compile test program
+testex $f >tt0             # extract sample output -> tt0
+a.out $* >tt1              # run test with output -> tt1
+diff tt0 tt1               # compare output to sample output

@@ -1,0 +1,48 @@
+
+                          INSTALL CCMATH
+
+     The CCMATH Mathematics Library is installed using three shell scripts
+ located in the distribution directory containing this INSTALL file:
+
+          makelibs.sh ,    non_intel.sh ,   and      install.sh
+
+ These scripts should be run from the distribution directory.
+
+ NOTE: The installation scripts assume a shell that accepts Borne shell
+       syntax commands, such as 'bash' or 'ksh'. I They current specify
+       use of '/bin.sh'. You may alter this another compatible shell
+       by altering the first line in the script files.
+
+     1) SKIP THIS STEP IF YOUR TARGET IS INTEL COMPATIBLE!!
+        If you are installing the library on a platform that does
+        not use an Intel 80x86 compatible processor, run the script
+        non_intel.sh first. The script will query you on the byte
+        order employed by the target processor (little-endian for
+        INTEL and big-endian for many UNIX workstations). You
+        should know the answer before running non_intel.sh.
+        [ To test the byte order of your processor, compile
+          and run the program byteord.c , and compare the
+          output with sample output for a little-endian
+          processor appended as a comment to the byteord
+          source. If they differ, your processor is
+          big-endian. ]
+        
+     2) Run the makelibs.sh script to compile the source code.
+        The script will query you on whether or not the target
+        processor is Intel compatible. If it is, respond by
+        entering 'y'. The script will compile both a static
+        library 'ccm.a' and a shared library 'lccm.so',
+        stored in the subdirectory 'tmp'.
+
+        Optimization flags and/or the compiler command used
+        can be altered by editing the script. This distribution
+        was tested using gcc version 2.7.2.3.
+
+    3) Run the install.sh script as the ROOT user to install the
+       header file and the libraries. The default locations are:
+
+          header:        /usr/include/ccmath.h
+          static lib:    /usr/lib/libccm.a
+          shared lib:    /lib/libccm.so
+
+       These locations can be altered by editing the script.

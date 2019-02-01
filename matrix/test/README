@@ -1,0 +1,69 @@
+     This directory contains test code for the functions of the 'matrix'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The 'util' subdirectory contains driver code used to generate the
+     binary (.bin) matrix data files used as input to some matrix tests.
+     These generators can produce complex square matrices, Hermitian
+     matrices, real square matrices, and real symmetric matrices.
+     The format of the binary (.bin) files are an integer dimension n
+     followed by n*n values (double for real matrices and pair of
+     doubles {re, im} for complex matrices). 
+
+     The inputs used for the standard tests, with output appended
+     to the test source as a comment, are either integers that
+     specify dimensions or the pathname of an input data file.
+     They are listed below.
+
+          tchouse.c  data/hm4.bin
+          tchousv.c  data/hm4.bin
+          tcminv.c   4
+          tcmmul.c   4
+          tcmmult.c  4 4 2
+          tcmops.c   data/cm42.dat
+          tcsolv.c   4
+          teigen.c   data/sm5.bin
+          teval.c    data/sm6.bin
+          tevmax.c   5
+          theigval.c  data/hm4.bin
+          theigvec.c  data/hm4.bin
+          thevmax.c  4
+          thmgen.c   4
+          thouse.c   data/sm5.bin
+          thousev.c  data/sm5.bin
+          tminv.c    data/mat.dat
+          tmmul.c    5
+          tmop1.c    data/mop1.dat
+          tmop2.c    data/mop2.dat
+          totrmat.c  4
+          tpsinv.c   data/spdm.dat
+          trmmult.c  3 4 3
+          truinv.c   data/rumat.dat
+          tsmgen.c   5
+          tsolv.c    data/sol.dat
+          tsolvps.c  data/spsol.dat
+          tsolvru.c  data/solru.dat
+          tsolvtd.c  data/std.dat
+          tsv2u1v.c  data/svd4.dat
+          tsv2uv.c   data/svd7.dat
+          tsv2val.c  data/svd1.dat
+          tsvdu1v.c  data/svd2.dat
+          tsvduv.c   data/svd1.dat
+          tsvdval.c  data/svd7.dat
+          tunitar.c  4
+          tutrncm.c  4
+
+     The functions tsvalS.c and tsvduvS.c can be used to verify
+     that the fix for numerical instability in the singular value
+     decomposition's QR rotation functions has been correctly
+     installed.
+
+     tsvalS 5000 | grep -c -e 'Inf'     Should yield an output of 0.
+
+     tsvduvS data/tdatS1.bin 1          Should show that the SVD
+       and                              transformation worked in
+     tsvduvS data/tdatS23.bin 23        1 and 23 cases respectively.
+                                        ( No Inf or NaN values in the
+                                          output, and consistent
+                                          transformations. )

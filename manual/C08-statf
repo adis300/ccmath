@@ -1,0 +1,281 @@
+                               Chapter 8
+
+                         STATISTICAL FUNCTIONS
+
+                                Summary
+
+               This library segment contains functions that
+               compute a cumulative distribution and percentage
+               points for the full range of probability
+               densities likely to arise in sampling from normal
+               populations. The distributions covered are:
+
+                        o Normal Distribution
+                        o Gamma Distributions
+                        o Beta Distributions
+                        o Noncentral Gamma Distributions
+                        o Noncentral Beta Distributions
+
+               The functions are designed to produce high
+               accuracy over a large range of distribution
+               parameters for all valid function arguments.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+     The functions in this library segment compute cumulative distributions
+ and evaluate percentage points for the statistical distribution functions
+ encountered in sampling from normal populations.
+
+ o Normal Distribution:
+
+    qnorm  ------- compute the tail of the cumulative standard
+                   normal distribution.
+    pctn  -------- compute percentage points of a standard
+                   normal distribution.
+
+ o Gamma Distribution:
+
+    qgama  ------- compute the cumulative gamma or chi-square
+                   distribution.
+    pctg  -------- compute percentage points of the gamma and
+                   chi-square distributions.
+
+ o Beta Distribution:
+
+    qbeta  ------- compute the cumulative beta, F, or Student-t
+                   distribution.
+    pctb  -------- compute percentage points of the beta, F, or
+                   Student-t distribution.
+
+ o Noncentral Gamma Distribution:
+
+    qgnc  -------- compute the cumulative noncentral gamma or
+                   noncentral chi-square distribution.
+    pctgn  ------- compute percentage points of the noncentral
+                   gamma or noncentral chi-square distribution.
+
+ o Noncentral Beta Distribution:
+
+    qbnc  -------- compute the cumulative noncentral beta or
+                   noncentral chi-square distribution.
+    pctbn  ------- compute percentage points of the noncentral
+                   beta or noncentral chi-square distribution.
+
+
+ -----------------------------------------------------------------------------
+
+ General Technical Comments
+
+     The gamma distribution is simply a generalization of the chi-square
+ distribution, while the beta distribution is related to the F-distribution
+ and the Student-t distribution by simple transformations. The specific
+ transformations are:
+
+     o    chi-square x^2 with n degrees of freedom -> gamma
+          distribution, with  x^2 = 2z  and  n = 2a  ;
+
+     o    F-distribution f with m and n degrees of freedom ->
+          beta distribution, with  f = [a+(1-z)]/[b+z]
+          or  z = 1/[1+(m/n)*f] ,  where  n=2a  and m=2b .
+
+     o    Student-t distribution t with n degrees of freedom ->
+          beta distribution, with   t = 2a+sqrt(1-z^2)/z
+          or  z = sqrt[1 - (t/n)^2] , when n=2a ,and b = 1/2 .
+
+ The generalization of the parameters of these densities to all real values
+ facilitates the treatment of multidimensional problems.
+
+     The noncentral distributions are used to determine the power of many
+ standard statistical hypothesis tests. The non-centrality parameter (dsq)
+ used in these functions is related to the form employed in noncentral F and
+ chi-square distributions by
+
+        dsq = w/2 , with  w = Sum(i=1 t0 n) q[i]^2 , and
+                  q[i] = x[i] - x(avg).
+
+ Thus, dsq represents the square distance from an assumed mean in the
+ multidimensional sample space.
+
+     The standards of accuracy adopted for these library functions are:
+
+          o cumulative distributions with 10 decimal accuracy; and
+
+          o percentage points sufficiently accurate to reproduce the
+            desired probability with absolute error < 10^9 .
+
+ This accuracy is maintained over a full argument range for parameter values
+ (a for the gamma distributions and, a,b for the beta distributions) less than
+ 100. It is possible to use larger parameter values, however pre-testing of
+ convergence is recommended in such applications. At these large values,
+ corresponding to sample sizes greater than 200, normal approximations to
+ gamma and beta distributions can be used with excellent accuracy.
+
+-------------------------------------------------------------------------------
+                          FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+ Normal Distribution:
+-------------------------------------------------------------------------------
+
+          density:  ro(x) = exp(-(x^2)/2)/sqrt(2*pi)
+
+          Cumulative: Qn(z) = Intg(z to infinity) ro(x) dx  .
+     -------------------------------------------------------------
+
+qnorm
+
+     Integral from x to infinity of the standard normal distribution.
+
+     double qnorm(double x)
+       x = value of argument
+      return value: Qn(x) = integral of normal density from x to infinity
+
+     ---------------------------------------------------------------------
+
+pctn
+
+     Compute percentage points of the standard normal distribution.
+
+     double pctn(double pc)
+       pc = probability argument (te< pc <1-te, with te=1.e-9)
+      return value: x = value for which Qn(x)=pc
+                        x=HUGE -> pc outside limits
+
+-------------------------------------------------------------------------------
+
+ Gamma Distribution:
+-------------------------------------------------------------------------------
+
+          gro(x,a) = x^(a-1)*exp(-x)/Gamma(a)  , with
+
+          Qg(z,a) = Intg(z to infinity) gro(x,a) dx  .
+     ---------------------------------------------------------
+
+qgama
+
+     Evaluate the cumulative gamma distribution function.
+
+     double qgama(double x,double a)
+       x = value of argument (0 < x)
+       a = distribution parameter (a > 0)
+      return value: Qg(x) = integral of gamma density from x to infinity
+
+     --------------------------------------------------------------------
+
+pctg
+
+     Evaluate the percentage points of the gamma distribution.
+
+     double pctg(double pc,double a)
+       pc = probability argument (te< pc <1-te, with te=1.e-9)
+       a = distribution parameter (a > 0)
+      return value: x = value of x at which Qg(a,x)=pc
+                        x=-1 -> pc outside limits
+
+-------------------------------------------------------------------------------
+
+ Beta Distribution:
+-------------------------------------------------------------------------------
+
+          bro(x,a,b) = x^(a-1) * (1-x)^(b-1)/Beta(a,b)  , where
+
+          Beta(a,b) = Gamma(a)*Gamma(b)/Gamma(a+b) and
+
+          Qb(z,a,b) = Intg(0 to z) bro(x,a,b) dx  .
+     ---------------------------------------------------------
+
+qbeta
+
+     Compute the cumulative beta distribution function.
+
+     double qbeta(double x,double a,double b)
+       x = value of the argument (0 < x < 1)
+       a,b = distribution parameters (a,b > 0)
+      return value: Qb = integral of the beta density from 0 to x
+
+     --------------------------------------------------------------
+
+pctb
+
+     Evaluate the percentage points of the beta distribution.
+
+     double pctb(double pc,double a,double b)
+     double pc,a,b;
+       pc = probability argument (te< pc <1-te, with te=1.e-9)
+       a,b = distribution parameters (a,b > 0)
+      return value: x = value of x at which Qb(x,a,b)=pc
+                        x=-1 -> pc outside limits
+
+-------------------------------------------------------------------------------
+
+ Noncentral Gamma Distribution:
+-------------------------------------------------------------------------------
+
+          gro_nc(x,a,d) = (z/d)^{(a-1)/2}*exp{-(a+d)}*Ia(sqrt(z*d)) 
+
+              = exp(-d)*Sum(k=0 to infinity){(d^k/k!)*gro(x,a+k)
+
+          Qg_nc(z,a,d) = Intg(z to infinity) gro_nc(x,a,d) dx .
+     --------------------------------------------------------------------
+
+qgnc
+
+     Compute the non-central gamma cumulative distribution function.
+
+     double qgnc(double x,double a,double d)
+       x = value of argument (x > 0)
+       a = distribution parameter (a > 0)
+       d = non-centrality parameter (d >= 0)
+      return value: Qg_nc = integral of noncentral gamma density from
+                              x to infinity
+
+     ----------------------------------------------------------------------
+pctgn
+
+     Evaluate percentage points of the noncentral gamma distribution.
+
+     double pctgn(double pc,double a,double d)
+       pc = probability argument (te< pc <1-te, with te=1.e-9)
+       a = distribution parameter (a > 0)
+       d = non-centrality parameter (d >= 0)
+      return value: x = value of x at which Qg_nc(x,a,d)=pc
+                        x=-1 -> pc outside limits
+
+
+-------------------------------------------------------------------------------
+
+ Noncentral Beta Distribution:
+-------------------------------------------------------------------------------
+
+          bro_nc(x,a,b,d) = exp(-d)*x^(a-1)*(1-x)^(b-1)*
+                            F(a+b,b:d(1-x))/Beta(a,b)
+
+            = exp(-d)* Sum(k=0 to infinity){ (d^k/k!)bro(x,a,b+k)  , and
+
+          Qb_nc(z,a,b,d) = Intg(0 t0 z) bro_nc(x,a,b,d) dx .
+     -----------------------------------------------------------------
+
+qbnc
+
+     Compute the cumulative non-central beta distribution function.
+
+     double qbnc(double x,double a,double b,double d)
+       x = value of argument (0< x <1)
+       a,b = distribution parameters (a,b > 0)
+       d = non-centrality parameter (d >= 0)
+      return value: Qb_nc = integral of the noncentral beta density
+                            from 0 to x
+
+     -------------------------------------------------------------------
+
+pctbn
+
+     Evaluate percentage points of the noncentral beta distribution.
+
+     double pctbn(double pc,double a,double b,double d)
+       pc = probability argument (te< pc <1-te, with te=1.e-9)
+       a,b = distribution parameters (a,b > 0)
+       d = non-centrality parameter (d >= 0)
+      return value: x = value of x at which Qb_nc(x,a,b,d)=pc

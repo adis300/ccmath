@@ -1,0 +1,358 @@
+                              Chapter 12
+
+                          COMPLEX ARITHMETIC
+
+                               Summary
+
+               The complex arithmetic library contains functions
+               for:
+
+                   o Basic arithmetic Operations
+                   o A Library of Elementary Functions
+
+               The functions accept and return complex numbers
+               represented as an ordered pair of doubles.
+
+-------------------------------------------------------------------------------
+
+ Notes on Contents
+
+ o  Basic Arithmetic Operations:
+
+    carith  ------- perform basic operations of multiplication,
+                    division, addition, subtraction, multiplication
+                    by a real or imaginary number, complex conjugation,
+                    changing the sign, and computing the modulus or
+                    its square.
+
+ o  Complex Elementary Functions:
+
+    csqrt  -------- compute the square root.
+    cexp  --------- complex exponent function.
+    clog  --------- complex natural logarithm.
+    ctrig  -------- complex trigonometric functions sine, cosine and
+                    tangent.
+    citrg  -------- complex inverse trigonometric functions, on their
+                    principal branches.
+    chypb  -------- complex hyperbolic functions sinh, cosh, and tanh.
+    cihyp  -------- complex inverse hyperbolic functions, on their
+                    principal branches.
+
+-------------------------------------------------------------------------------
+
+ General Technical Comments
+
+     Complex arithmetic is supported by functions implementing the basic
+ operations and a library of elementary transcendental functions. The basic
+ form of a complex number is
+
+                       z = (re) + i*(im)  ,
+
+ with both the real (re) and imaginary parts (im) taking double precision real
+ values.
+
+      Conventions selected for the elementary functions that have branch cuts
+ in the complex z-plane conform to standards for principal branches recommended
+ in reference [a].
+
+                              References
+
+     [a]. W. Kahan, "Branch Cuts for Elementary Functions," in
+          "The State of the Art in Numerical Analysis," edited
+          by A. Iserles and M. J. D. Powell, Oxford Univ. Press,
+          1987, pp. 165.
+
+_______________________________________________________________________________
+                        FUNCTION SYNOPSES
+-------------------------------------------------------------------------------
+
+     The header files complex.h (listed below) and ccmath.h define a complex
+ variable and contain declarations of the library functions.
+
+     complex.h
+
+          #ifndef CPX
+          struct complex {double re,im;};
+          typedef struct complex Cpx;
+          #define CPX  1
+          #endif
+          #include <math.h>
+          struct complex cadd(),csub(),cmul(),cdiv();
+          struct complex crmu(),cimu(),ccng(),cdef();
+          double cabs(),cnrm();
+          struct complex csqrt(),cexp(),clog();
+          struct complex csin(),ccos(),ctan();
+          struct complex casin(),cacos(),catan();
+
+     ------------------------------------------------------------------
+
+carith
+
+     Perform the basic arithmetic operations on complex variables.
+
+     Multiplication c = s * t
+
+     struct complex cmul(struct complex s,struct complex t)
+       s,t = complex arguments
+      return value: c = s*t
+     --------------------------------------------------------- 
+
+     Division c = s / t
+
+     struct complex cdiv(stuct complex s,struct complex t)
+       s,t = complex arguments
+      return value: c = s/t
+     ---------------------------------------------------------
+
+     Addition c = s + t
+
+     struct complex cadd(struct complex s,struct complex t)
+       s,t = complex arguments
+      return value: c = s+t
+     ---------------------------------------------------------
+
+     Subtraction c = s - t
+
+     struct complex csub(struct complex s,struct complex t)
+       s,t = complex arguments
+      return value: c = s-t
+     ----------------------------------------------------------
+
+     Multiply by a real a,  c = a * z
+
+     struct complex crmu(double a,struct complex z)
+       a = real multiplier
+       z = complex input
+      return value: c = a*z
+     -----------------------------------------------------------
+
+     Multiply by an imaginary number i, c = i * z
+
+     struct complex cimu(double i,struct complex z)
+       i = imaginary multiplier
+       z = complex input
+      return value: c = i*z
+     ------------------------------------------------------------
+
+     Take the complex conjugate  c = z*
+
+     struct complex ccng(struct complex z)
+     struct complex z;
+       z = complex input
+      return value: c = z*
+     -----------------------------------------------------
+     Initialize a complex number  c = r + i*s
+
+     struct complex cdef(double r,double s)
+       r = real part of number
+       s = imaginary part of number
+      return value: c = r+i*s
+     ------------------------------------------------------
+
+     Compute the modulus  r = | z |
+
+     double cabs(struct complex z)
+       z = complex input
+      return value: r = |z| (real)
+     ------------------------------------------------------
+
+     Compute the squared modulus  r^2 = z * z*
+
+     double cnrm(struct complex z)
+       z = complex input
+      return value: r2 = z*z* (real)
+
+-------------------------------------------------------------------------------
+
+csqrt
+
+     Compute the square root of a complex argument  c = sqrt(z).
+
+     struct complex csqrt(struct complex z)
+       z = complex input
+      return value: f = sqrt(z)
+
+
+      principal branch: z = r exp(i*a)  with  -pi < a <= pi
+
+                        f = sqrt(r) exp(i*a/2) .
+
+     -----------------------------------------------------------
+
+cexp
+
+  cexp
+
+     Compute exponent exp(z) of a  complex argument.
+
+     struct complex cexp(struct complex z)
+       z = complex input
+      return value: e = exp(z)
+
+  clog
+
+     Compute the natural logarithm of a complex argument.
+
+     struct complex clog(struct complex z)
+       z = complex input
+      return value: f = log(z) 
+
+
+     principal branches: e = r exp(i*a)  with  -pi < a <= pi
+
+                        f = log(r) + i*a
+
+     ---------------------------------------------------------------
+
+ctrig
+
+     Evaluate the trigonometric functions for a complex argument.
+
+  csin
+
+     struct complex csin(struct complex z)
+       z = complex input
+      return value: fs = sin(z)
+
+  ccos
+
+     struct complex ccos(struct complex z)
+       z = complex input
+      return value: fc = cos(z)
+
+  ctan
+
+     struct complex ctan(struct complex z)
+       z = complex input
+      return value: ft = tan(z)
+
+     ------------------------------------------------------
+
+citrg
+
+     Evaluate the inverse trigonometric functions for complex arguments.
+
+  casin
+
+     struct complex casin(struct complex z)
+       z = complex input
+      return value: f = asin(z)
+
+
+     principal branch: z-plane cuts on real axis 1 to infinity
+                       and -1 to -infinity.
+
+         f = r + i*s  with -pi/2 <= r < pi/2  for s >= 0
+                      and  -pi/2 < r <= pi/2  for s < 0
+
+  cacos
+
+     struct complex cacos(struct complex z)
+       z = complex input
+      return value: f = acos(z)
+
+
+     principal branch: z-plane cuts on real axis 1 to infinity
+                       and -1 to -infinity
+
+           f = r + i*s  with 0 <= r < pi  for s >= 0
+                        and  0 < r <= pi  for s < 0
+
+  catan
+
+     struct complex catan(struct complex z)
+       z = complex input
+      return value: f = atan(z)
+
+
+     principal branch: z-plane cuts on imaginary axis i to i*infinity
+                       and -i to -i*infinity
+
+           f = r + i*s  with -pi/2 < r <= pi/2  for s >= 0
+                        and  -pi/2 <= r < pi/2  for s < 0
+
+-------------------------------------------------------------------------------
+
+     The complex hyperbolic functions are defined by
+
+          cosh(z) = cos(i*z)
+          acosh(z) = f = log(z + sqrt(z*z -1))
+          sinh(z) = -i*sin(i*z)   asinh(z) = i*asin(-i*z)
+          tanh(z) = -i*tan(i*z)   atanh(z) = i*atan(-i*z)
+
+-------------------------------------------------------------------------------
+
+chypb
+
+     Evaluate the hyperbolic functions for complex arguments.
+
+  csinh
+
+     struct complex csinh(struct complex z)
+       z = complex input
+      return value: f = sinh(z)
+
+     ------------------------------------------------------------
+
+  ccosh
+
+     struct complex ccosh(struct complex z)
+       z = complex input
+      return value: f = cosh(z)
+
+     -------------------------------------------------------------
+
+  ctanh
+
+     struct complex ctanh(struct complex z)
+       z = complex input
+      return value: f = tanh(z)
+
+-------------------------------------------------------------------------------
+
+cihyp
+
+     Evaluate the inverse hyperbolic functions for complex arguments.
+
+  casinh
+
+     struct complex casinh(struct complex z)
+       z = complex input
+      return value: f = asinh(z)
+
+     principal branch: z-plane cuts on imaginary axis i to i*infinity
+                       and -i to -i*infinity
+
+               f = r + i*s  with -pi/2 < s <= pi/2  for r >= 0
+                            and  -pi/2 <= s < pi/2  for r < 0
+
+     -------------------------------------------------------------------
+
+  cacosh
+
+     struct complex cacosh(struct complex z)
+       z = complex input
+      return value: f = acosh(z)
+
+     principal branch: z-plane cut on real axis 1 to -infinity
+
+            f = r + i*s  with -pi/2 < s <= pi/2 , r >= 0 for s >= 0 ,
+                         and r > 0 for s < 0
+
+          This choice makes acosh(z) single valued on the
+          real z-axis when z > 1.
+
+     ----------------------------------------------------------------
+
+  catanh
+
+     struct complex catanh(struct complex z)
+       z = complex input
+      return value: f = atanh(z)
+
+
+     principal branch: z-plane cuts on real axis 1 to infinity and
+                       -1 to -infinity
+
+               f = r + i*s  with -pi/2 <= s < pi/2  for r >= 0
+                            and  -pi/2 < s <= pi/2  for r < 0

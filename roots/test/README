@@ -1,0 +1,27 @@
+     This directory contains test code for the functions of the 'roots'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The subdirectory 'op-test' contains code that supports a
+     supplementary set of tests of the 'optmiz.c' software with various
+     test functions.
+              Rosenbach                frb.c
+              Helical valley           fhv.c
+              4 Dimsnsional            f4d.c
+              Tcheby-quad              fchqad.c
+     The test driver is topth.c, and the user is prompted for control
+     inputs.
+
+     Test inputs for the standard test, whose output appears as
+     a comment appended to the test source code, are specified
+     on the following list.
+
+          toptmiz     prompted input vector (-1. 1.)
+          toptsch     no input
+          tplrt       no input (The files data/pol1.dat and
+                                data/pol2.dat can be specified on
+                                the command line foroptional tests.)
+          tsecrt      no input
+          tsolnl      prompted input vector (1. 0. 1.)
+          tsolnx      prompted input vector (1. 1. 1.)

@@ -1,0 +1,28 @@
+     This directory contains test code for the functions of the 'xarm'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The list below specifies the test input parameters required
+     for the standard tests whose output is appended as a comment
+     to the test source code. The absence of an entry indicates
+     that no input parameters are required. 
+
+
+     tatox     data/atox.dat
+     txaop1    data/aop1.dat
+     txaop2    -1.24e-3
+     txchser   12
+     txconv    data/xcvt.dat
+     txdiv
+               prompt sequence: 1 3 : 4 7 : 2 16 : 0 0
+     txexp
+     txfmod    12.5 3
+     txfrex    data/xfrex.dat
+     txhypb
+     txivtrg
+     txlog
+     txprcmp   data/xcmp.dat
+     txpwr     -.7 6
+     txsqrt
+     txtrig

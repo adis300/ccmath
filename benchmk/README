@@ -1,0 +1,51 @@
+                        Benchmark Timing
+
+     This directory contains the source code for drivers that time the
+execution of important CCMATH functions. The header comments in each of
+the source files describes the input command line parameters required
+by the function. The file 'linux_2p.tim' contains timing data I obtained
+on a 233 MHz Pentium II.
+
+     The quoted times were obtained, after instalation of the ccmath
+ library, with programs compiled using
+
+     cc -O3 "bench".c -lccm -lm ,
+
+ where "bench " is one of the following drivers.
+
+
+     timbes.c ----- time the execution of Bessel functions
+     timeigv.c ---- time the computation of the eigenvalues
+                    and eigenvectors of a real symmetric matrix
+     timeval.c ---- time the computation of the eigenvalues of
+                    a real symmetric matrix
+     timfft2.c ---- time a radix-2 Fast Fourier Transform (FFT)
+     timfftgc.c --- time a general radix complex FFT
+     timheval.c --- time the computation of the eigenvalues of a
+                    hermitian matrix
+     timhevec.c --- time the computation of the eigenvalues and
+                    eigenvectors of a hermitian matrix
+     timhsrt.c ---- time the heap sort of a real array
+     timintg.c ---- time a numerical integration of complete
+                    elliptic integrals
+     timlpac.c ---- time the solution of a real linear system (LINPAC)
+     timmiv.c ----- time the inversion of a real matrix
+     timmsrt.c ---- time the merge sort of a real array
+     timmul.c ----- time the multiplication of real matrices
+     timnrml.c ---- time the generation of pseudorandom normals
+     timqsrt.c ---- time the 'quicksort' of a real array
+     timslpac.c --- time the solution of 'small' linear systems
+                    (dimension < 400)
+     timssrt.c ---- time the "Shell' sort of a real array
+
+     The following functions generate the binary matrix data files used
+     as input to the eigensystem timing routines.
+
+     hmatgen.c ---- generate a hermitian matrix with the specified
+                    dimension
+     smatgen.c ---- generate a real symmetric matrix with the specified
+                    dimension
+
+     The eigenvalues employed in these generators have a simple equal
+     spacing. This portion of the generator code can easily be changed
+     to generate matrices with more complex patterns of eigenvalues.

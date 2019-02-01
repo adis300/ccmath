@@ -1,0 +1,10 @@
+     This directory contains test code for the functions of the 'fft'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     Only the following three tests require command line inputs:
+
+     t2dfft  3  0
+     tpfac  63  120  175
+     tsmoo  2  data/smoo.dat

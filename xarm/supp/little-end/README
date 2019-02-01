@@ -1,0 +1,5 @@
+     The C-code and header files in this directory must be used
+     to install the 'xarm' library segment on a platform with
+     little-endian byte ordering (for example Intel 80x86).
+     This is the default configuration currently installed in
+     the 'xarm' directory.

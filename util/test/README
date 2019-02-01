@@ -1,0 +1,5 @@
+     This directory contains test code for the functions of the 'util'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it.
+
+     No command line parameters are required for these tests.

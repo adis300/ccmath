@@ -1,0 +1,39 @@
+                        TESTING CCMATH
+
+     Two script files, runtest (a shell script), and testex (a perl script)
+ are supplied to facilitate comparison of test program output with the
+ sample output appended as a comment to each test source file. These
+ scripts should be placed in some directory on your executable path. You
+ should also check the first line of each script to and modify it if
+ the locations assumed /bin/sh and /usr/bin/perl are not correct.
+
+     To run a test and check its output you simply execute runtest in
+ the 'test' subdirectory containing the test source code.
+
+          runtest testsource.c test-command-line-parameters
+
+ The standard command line parameters for each test are tabulated in the
+ README file of the test subdirectory. This tabulation also specifies
+ the sequence of prompt responses (if any) required to generate the
+ standard test output. The output of the run is then compared, using
+ 'diff' to the standard output appended as a comment to the test source.
+ Output of a successful test will look like the sample below.
+
+                    1,2d0
+                    < /*  Test output
+                    < 
+                    36d33
+                    < */
+
+ It includes only the enclosing comment flags and possibly some blank lines.
+ Any differences in numerical values that appear may indicate a failed test.
+
+     Note that some compilers generate slightly different formats for
+ scientific (%e) notation, so differences in such numbers, flagged by 'diff',
+ should be inspected to see if they actually differ in value as well as
+ format.
+
+     This test capability simplifies and speeds up initial testing of
+ library functions. I urge you to inspect the test code and run some
+ alternative tests for any function that will play a critical role in
+ your application.

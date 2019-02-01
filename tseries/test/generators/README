@@ -1,0 +1,34 @@
+     The code in this directory is used to generate the binary time-series
+     data required as input to modeling test programs.
+
+     garma - generates binary output for ordinary time series.
+
+     call:  garma series-length(int) control-file(.dat) output-file(.b)
+
+     gfarma - generates data for factor model time series.
+
+     call:  gfarma series-length(int) control-file(.dat) output-file(.b)
+
+     The file extensions suggested above are recommended standards.
+
+  IMPORTANT NOTE:
+
+     The binary test input files must be regenerated if your processor
+     is big-endian, or if it employs a floating point formt different
+     from the IEEE 64-bit standard for doubles. The command sequence
+     for this regeneration is:
+
+     garma 400 ../data/ts0.dat ../data/ts0.b
+
+     garma  25 ../data/ts6.dat  ../data/ts6.b
+
+     gfarma 400 ../data/tfs0.dat ../data/tfs0.b
+
+     If the test for 'tmest' is successful, the test file for tresid.c
+     must recreated by running from the 'test' directory:
+
+     tmest data/ts0.dat data/ts0.b
+          with the prompt sequence: s s s f f q y
+
+     to create a new  data/ts0.er  .
+ 

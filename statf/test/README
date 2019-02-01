@@ -1,0 +1,14 @@
+     This directory contains test code for the functions of the 'statf'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it.
+
+     The following list specifies the inputs used in the standard
+     tests, whose output is appended to the test source code as a
+     comment.
+
+     tbetanc  1.5  3.2  2.0
+     tdbeta   1.2  5.7
+     tdgama   4.33
+     tdnorm   no input
+     tgamanc  3.1  4.2
+

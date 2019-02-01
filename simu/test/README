@@ -1,0 +1,34 @@
+     This directory contains test code for the functions of the 'simu'
+     segment of the CCM math library. Each test code file has a sample
+     of the correct output appended to it. Input data files, if any
+     are named in the test code header, are in the 'data' sub-directory.
+
+     The 'timing' subdirectory contains code to time the execution of
+     the pseudorandom generators in this library segment. Input to
+     the timing functions is a sample size.
+
+     The 'distribution' subdirectory contains code used to compute
+     and tabulate the distribution of values produced by the normal
+     and uniform ranom generators. Input to the distribution functions
+     is a random seed and a sample size.
+
+     The command line input parameters for each of the standard tests
+     are specified in the following list. These inputs should reproduce
+     the results appended as a comment to the test source code.
+
+     tbran   57a5387 10 20000
+     tbran2  ef7bdb3 12 240000
+     tlran1  3da1c1b8 25
+     tlrand  75bcd15 50
+     tnorm   7766805b 20
+     tnorm2  a1b43111 20
+     tnrml   11b6976b 20
+     tprand  4c7605e3
+     tsampl  5000 c1a34567
+     tsamshf 10000 ae595c0e
+     tshuffl 571a5e98 20
+     tunfl   378f3e50 20
+     tunfl2  f53814d1 20
+
+     These arguments specify a random seeds and sample sizes
+     for the tests.
