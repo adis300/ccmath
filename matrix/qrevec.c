@@ -34,7 +34,10 @@ int qrevec(double *ev,double *evec,double *dp,int n)
         h=p[0]; p[0]=cc*h+sc*p[n]; p[n]=cc*p[n]-sc*h;
        }
      }
-    ev[k]=ev[k]*cc-y; dp[k-1]=ev[k]*sc; ev[k]=ev[k]*cc+d;
+    //ev[k]=ev[k]*cc-y; dp[k-1]=ev[k]*sc; ev[k]=ev[k]*cc+d;
+    ev[k]=ev[k]*cc-y; 
+    if(k>0)dp[k-1]=ev[k]*sc; //(EDIT): Suggested by Codedial06
+    ev[k]=ev[k]*cc+d;
    }
   return 0;
 }

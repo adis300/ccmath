@@ -41,6 +41,9 @@ void qrecvc(double *ev,Cpx *evec,double *dp,int n)
 	    p[n].im=cc*p[n].im-sc*h;
        }
      }
-    ev[k]=ev[k]*cc-y; dp[k-1]=ev[k]*sc; ev[k]=ev[k]*cc+d;
+    //ev[k]=ev[k]*cc-y; dp[k-1]=ev[k]*sc; ev[k]=ev[k]*cc+d;
+    ev[k]=ev[k]*cc-y; 
+    if(k>0)dp[k-1]=ev[k]*sc; //(EDIT): Suggested by Codedial06
+    ev[k]=ev[k]*cc+d;
    }
 }
